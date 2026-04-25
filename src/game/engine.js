@@ -119,7 +119,7 @@ export function findBridgeWord(startLetter, endLetter) {
 }
 
 export async function fetchDefinition(word) {
-  const cacheKey = `wordible_def_${word}`
+  const cacheKey = `wordwich_def_${word}`
   const cached = localStorage.getItem(cacheKey)
   if (cached !== null) return cached || null
 

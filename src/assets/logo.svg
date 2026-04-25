@@ -1,0 +1,22 @@
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <path d="M40 70C40 50 60 40 100 40C140 40 160 50 160 70H40Z" fill="#E6A15C" />
+  <text x="100" y="65" font-family="Arial, sans-serif" font-weight="900" font-size="18" fill="white" text-anchor="middle">WORD</text>
+
+  <rect x="35" y="70" width="130" height="8" rx="4" fill="#FFD93D" />
+
+  <rect x="40" y="82" width="28" height="28" rx="6" fill="#FF6B6B" />
+  <text x="54" y="102" font-family="Arial, sans-serif" font-weight="bold" font-size="20" fill="white" text-anchor="middle">W</text>
+  
+  <rect x="72" y="82" width="28" height="28" rx="6" fill="#4D96FF" />
+  <text x="86" y="102" font-family="Arial, sans-serif" font-weight="bold" font-size="20" fill="white" text-anchor="middle">I</text>
+  
+  <rect x="104" y="82" width="28" height="28" rx="6" fill="#6BCB77" />
+  <text x="118" y="102" font-family="Arial, sans-serif" font-weight="bold" font-size="20" fill="white" text-anchor="middle">C</text>
+  
+  <rect x="136" y="82" width="28" height="28" rx="6" fill="#F473B9" />
+  <text x="150" y="102" font-family="Arial, sans-serif" font-weight="bold" font-size="20" fill="white" text-anchor="middle">H</text>
+
+  <path d="M35 115C35 115 50 125 70 115C90 105 110 125 130 115C150 105 165 115 165 115V122H35V115Z" fill="#6BCB77" />
+
+  <path d="M40 125H160C160 145 140 155 100 155C60 155 40 145 40 125Z" fill="#E6A15C" />
+</svg>

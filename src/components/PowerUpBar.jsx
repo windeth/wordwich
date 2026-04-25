@@ -3,87 +3,107 @@ import { Lightbulb, Link2, Clock } from 'lucide-react'
 import { useGameStore } from '../store/useGameStore'
 
 const POWERUPS = [
-  { key: 'insight', label: 'Insight', cost: 5, icon: Lightbulb, desc: 'Reveal the Master Word' },
-  { key: 'bridge', label: 'Bridge', cost: 2, icon: Link2, desc: 'Reveal 2 middle letters (not scored)' },
-  { key: 'timeWarp', label: 'Time Warp', cost: 5, icon: Clock, desc: 'Freeze timer for 30s' },
+  { key: 'insight',  label: 'Insight',   cost: 5, icon: Lightbulb, desc: 'Reveal the Master Word' },
+  { key: 'bridge',   label: 'Bridge',    cost: 2, icon: Link2,     desc: 'Middle 2 letters (not scored)' },
+  { key: 'timeWarp', label: 'Time Warp', cost: 5, icon: Clock,     desc: 'Freeze timer for 30s' },
 ]
 
 export default function PowerUpBar() {
   const [confirming, setConfirming] = useState(null)
-  const [error, setError] = useState(null)
-  const usePowerUp = useGameStore(s => s.usePowerUp)
-  const players = useGameStore(s => s.players)
+  const [error, setError]           = useState(null)
+  const usePowerUp         = useGameStore(s => s.usePowerUp)
+  const players            = useGameStore(s => s.players)
   const currentPlayerIndex = useGameStore(s => s.currentPlayerIndex)
-  const insightUsed = useGameStore(s => s.insightUsed)
-  const bridgeUsed = useGameStore(s => s.bridgeUsed)
-  const timeWarpActive = useGameStore(s => s.timeWarpActive)
-  const currentScore = players[currentPlayerIndex]?.score ?? 0
+  const insightUsed        = useGameStore(s => s.insightUsed)
+  const bridgeUsed         = useGameStore(s => s.bridgeUsed)
+  const timeWarpActive     = useGameStore(s => s.timeWarpActive)
+  const currentScore       = players[currentPlayerIndex]?.score ?? 0
+  const isUsed             = { insight: insightUsed, bridge: bridgeUsed, timeWarp: timeWarpActive }
 
   function confirm(key) {
     const result = usePowerUp(key)
-    if (!result.ok) {
-      setError(result.reason)
-      setTimeout(() => setError(null), 2000)
-    }
+    if (!result.ok) { setError(result.reason); setTimeout(() => setError(null), 2000) }
     setConfirming(null)
   }
 
-  const isUsed = { insight: insightUsed, bridge: bridgeUsed, timeWarp: timeWarpActive }
-
   return (
-    <div className="space-y-2 w-full">
-      <p className="text-xs font-bold uppercase tracking-widest text-center" style={{ color: 'var(--text3)' }}>
-        Power-Ups
-      </p>
-      <div className="flex gap-2">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', width: '100%' }}>
+      <span className="label">Power-Ups</span>
+      <div style={{ display: 'flex', gap: '10px' }}>
         {POWERUPS.map(({ key, label, cost, icon: Icon }) => {
-          const used = isUsed[key]
-          const canAfford = currentScore >= cost
+          const used     = isUsed[key]
+          const canAfford= currentScore >= cost
           const disabled = used || !canAfford
           return (
-            <button
-              key={key}
+            /* M3 tonal chip pattern */
+            <button key={key}
               onClick={() => !disabled && setConfirming(key)}
               disabled={disabled}
-              className="flex-1 flex flex-col items-center gap-1.5 p-3 rounded-2xl border transition-all active:scale-95"
               style={{
-                background: disabled ? 'var(--surface2)' : 'var(--surface)',
-                borderColor: disabled ? 'var(--border)' : 'var(--primary)',
-                opacity: disabled ? 0.4 : 1,
-                boxShadow: disabled ? 'none' : 'var(--shadow-sm)',
+                flex: 1, display: 'flex', flexDirection: 'column',
+                alignItems: 'center', gap: '6px', padding: '14px 8px',
+                background: disabled ? 'var(--surface-container)' : 'var(--surface-container-high)',
+                border: `1px solid ${disabled ? 'var(--outline-variant)' : 'var(--primary)'}`,
+                borderRadius: 'var(--shape-md)',
+                opacity: disabled ? 0.38 : 1,
+                cursor: disabled ? 'not-allowed' : 'pointer',
+                transition: `transform var(--dur-medium1) var(--ease-standard), opacity var(--dur-medium1) var(--ease-standard)`,
               }}
-            >
-              <Icon size={16} style={{ color: disabled ? 'var(--text3)' : 'var(--primary)' }} />
-              <span className="text-xs font-bold leading-none" style={{ color: 'var(--text)' }}>{label}</span>
-              <span className="text-xs font-black leading-none" style={{ color: 'var(--primary)' }}>{cost}pt</span>
+              onMouseEnter={e => { if (!disabled) e.currentTarget.style.transform = 'scale(1.02)' }}
+              onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)' }}
+              onMouseDown={e  => { if (!disabled) e.currentTarget.style.transform = 'scale(0.98)' }}
+              onMouseUp={e    => { if (!disabled) e.currentTarget.style.transform = 'scale(1.02)' }}>
+              <Icon size={16} style={{ color: disabled ? 'var(--on-surface-variant)' : 'var(--primary)' }} />
+              <span className="type-label-md" style={{ color: 'var(--on-surface)' }}>{label}</span>
+              <span className="type-label-md" style={{ color: 'var(--primary)', fontWeight: 700 }}>{cost}pt</span>
             </button>
           )
         })}
       </div>
 
       {error && (
-        <div className="text-center text-xs font-bold py-1.5 rounded-xl"
-          style={{ color: 'var(--danger)', background: 'var(--danger-l)' }}>
+        <div className="animate-enter" style={{
+          padding: '10px 16px', borderRadius: 'var(--shape-sm)', textAlign: 'center',
+          fontSize: '12px', fontWeight: 600,
+          color: 'var(--error)', background: 'var(--error-container)',
+        }}>
           {error}
         </div>
       )}
 
+      {/* M3 dialog — bottom sheet */}
       {confirming && (() => {
         const pu = POWERUPS.find(p => p.key === confirming)
         return (
-          <div className="fixed inset-0 z-50 flex items-center justify-center px-6"
-            style={{ background: 'rgba(0,0,0,0.5)' }}>
-            <div className="card-elevated w-full max-w-sm p-6 space-y-4 animate-fade-slide">
-              <div className="text-center space-y-1">
-                <h3 className="text-lg font-black" style={{ color: 'var(--text)' }}>Use {pu.label}?</h3>
-                <p className="text-sm" style={{ color: 'var(--text2)' }}>{pu.desc}</p>
-                <p className="text-sm font-black" style={{ color: 'var(--danger)' }}>Costs {pu.cost} pts</p>
+          <div style={{
+            position: 'fixed', inset: 0, zIndex: 50,
+            display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
+            padding: '0 16px 32px',
+            background: 'rgba(0,0,0,0.4)',
+          }}>
+            <div className="card-elevated animate-enter" style={{
+              width: '100%', maxWidth: '480px',
+              padding: '32px', borderRadius: 'var(--shape-xl)',
+              display: 'flex', flexDirection: 'column', gap: '20px',
+            }}>
+              <div>
+                <h3 className="type-title-lg" style={{ color: 'var(--on-surface)', marginBottom: '6px' }}>
+                  Use {pu.label}?
+                </h3>
+                <p className="type-body-md" style={{ color: 'var(--on-surface-variant)' }}>{pu.desc}</p>
+                <p className="type-label-lg" style={{ marginTop: '8px', color: 'var(--error)', fontWeight: 700 }}>
+                  Costs {pu.cost} pts
+                </p>
               </div>
-              <div className="flex gap-3">
-                <button onClick={() => setConfirming(null)} className="btn-ghost flex-1 py-3 text-sm">
+              <div style={{ display: 'flex', gap: '12px' }}>
+                <button onClick={() => setConfirming(null)}
+                  className="btn-outlined"
+                  style={{ flex: 1, borderRadius: 'var(--shape-sm)' }}>
                   Cancel
                 </button>
-                <button onClick={() => confirm(confirming)} className="btn-primary flex-1 py-3 text-sm">
+                <button onClick={() => confirm(confirming)}
+                  className="btn-primary"
+                  style={{ flex: 1, borderRadius: 'var(--shape-sm)' }}>
                   Confirm
                 </button>
               </div>

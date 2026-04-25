@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Wordible is a cross-platform mobile word game for Android and iOS. Players are given a criteria (e.g., letters, theme, or constraint) and must come up with the longest valid English dictionary word that satisfies it. Longer words score higher.
+Wordwich is a browser-based multiplayer word game. Players are given two "sandwich" letters and must submit the longest valid English word that starts with the first letter and ends with the second. Longer words score more points; beating the Master Word earns bonus points.
 
 ## Planned Tech Stack
 

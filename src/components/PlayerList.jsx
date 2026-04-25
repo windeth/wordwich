@@ -1,46 +1,49 @@
 import { useGameStore } from '../store/useGameStore'
 
 export default function PlayerList() {
-  const players = useGameStore(s => s.players)
+  const players            = useGameStore(s => s.players)
   const currentPlayerIndex = useGameStore(s => s.currentPlayerIndex)
 
   if (players.length <= 1) return null
 
   return (
-    <div className="card overflow-hidden">
-      <div className="px-4 py-2.5 border-b" style={{ borderColor: 'var(--border)' }}>
-        <span className="text-xs font-bold uppercase tracking-widest" style={{ color: 'var(--text3)' }}>Players</span>
+    <div className="card" style={{ overflow: 'hidden' }}>
+      <div style={{ padding: '10px 20px', borderBottom: '1px solid var(--outline-variant)' }}>
+        <span className="label">Players</span>
       </div>
       {players.map((p, i) => {
         const isActive = i === currentPlayerIndex
         return (
-          <div
-            key={p.id}
-            className="flex items-center justify-between px-4 py-3 border-b last:border-b-0 transition-colors"
-            style={{
-              borderColor: 'var(--border)',
-              background: isActive ? 'var(--primary-l)' : 'transparent',
-            }}
-          >
-            <div className="flex items-center gap-2.5">
+          <div key={p.id} style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            padding: '12px 20px',
+            borderBottom: i < players.length - 1 ? '1px solid var(--outline-variant)' : 'none',
+            background: isActive ? 'var(--primary-container)' : 'transparent',
+            transition: `background var(--dur-medium1) var(--ease-standard)`,
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
               {isActive && (
-                <div className="w-2 h-2 rounded-full" style={{ background: 'var(--primary)' }} />
+                <div style={{ width: '6px', height: '6px', borderRadius: '50%',
+                  background: 'var(--primary)', flexShrink: 0 }} />
               )}
-              <span
-                className="text-sm font-bold truncate max-w-[130px]"
-                style={{ color: isActive ? 'var(--primary)' : 'var(--text2)' }}
-              >
+              <span className="type-label-lg" style={{
+                color: isActive ? 'var(--on-primary-container)' : 'var(--on-surface-variant)',
+                maxWidth: '140px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+              }}>
                 {p.name}
               </span>
               {p.streak >= 2 && (
-                <span className="text-xs font-black px-1.5 py-0.5 rounded-full"
-                  style={{ background: '#fff3e0', color: '#ea580c', fontSize: '11px' }}>
+                <span style={{
+                  fontSize: '11px', fontWeight: 700,
+                  padding: '2px 7px', borderRadius: 'var(--shape-full)',
+                  background: 'var(--warning-container)', color: 'var(--warning)',
+                }}>
                   🔥{p.streak}
                 </span>
               )}
             </div>
-            <span className="text-sm font-black tabular-nums" style={{ color: 'var(--text)' }}>
-              {p.score}<span className="text-xs font-medium ml-0.5" style={{ color: 'var(--text3)' }}>pt</span>
+            <span className="type-label-lg" style={{ color: 'var(--on-surface)', fontWeight: 800 }}>
+              {p.score}<span style={{ fontSize: '10px', fontWeight: 500, marginLeft: '2px', color: 'var(--on-surface-variant)' }}>pt</span>
             </span>
           </div>
         )

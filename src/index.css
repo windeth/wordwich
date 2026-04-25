@@ -1,173 +1,384 @@
 @import "tailwindcss";
 
-/* ── Design tokens ────────────────────────────────────────────────────────── */
+/*
+ * Design system: Apple HIG × Google Material Design 3 × Airbnb Cereal
+ * Colors:   M3 tonal role system, warm stone neutrals (Airbnb)
+ * Type:     Apple HIG scale mapped to system-ui
+ * Spacing:  8pt grid (Apple + Airbnb)
+ * Shape:    M3 shape scale (4/8/12/16/28dp)
+ * Motion:   M3 easing curves + duration tokens
+ * Elevation:M3 tonal overlay, minimal shadow
+ */
+
+/* ── M3 Tonal Color Roles — Light ──────────────────────────────────────── */
 :root {
-  --bg:        #f8f7ff;
-  --surface:   #ffffff;
-  --surface2:  #f0effe;
-  --border:    #e4e2f8;
-  --text:      #1e1b4b;
-  --text2:     #6b7280;
-  --text3:     #9ca3af;
-  --primary:   #6366f1;
-  --primary-l: #eef2ff;
-  --primary-d: #4f46e5;
-  --success:   #16a34a;
-  --success-l: #dcfce7;
-  --danger:    #dc2626;
-  --danger-l:  #fee2e2;
-  --warning:   #ea580c;
-  --shadow-sm: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
-  --shadow-md: 0 4px 12px rgba(0,0,0,0.10), 0 2px 4px rgba(0,0,0,0.06);
-  --shadow-lg: 0 10px 30px rgba(0,0,0,0.12), 0 4px 8px rgba(0,0,0,0.06);
-  --radius:    16px;
+  /* Primary — warm sand #D5C7AD */
+  --primary:            #D5C7AD;
+  --on-primary:         #2C2215;   /* dark warm brown — high contrast on sand */
+  --primary-container:  #EDE5D4;   /* lighter sand tint for chips/tags */
+  --on-primary-container: #2C2215;
+
+  /* Surface tonal stack — warm cream (Airbnb), clearly distinct from dark mode */
+  --surface:            #FEFCF7;   /* warm cream — noticeable on toggle */
+  --surface-container:  #F4F1EA;   /* Level 1: cards */
+  --surface-container-high: #ECE8DF; /* Level 2: nav, sheets */
+  --surface-container-highest: #E4DFD4; /* Level 3: modals */
+  --bg:                 #F7F4ED;   /* warm cream background — clearly distinct from dark */
+
+  /* Text roles (Airbnb: warm, never cold) */
+  --on-surface:         #1C1917;   /* stone-900 */
+  --on-surface-variant: #6B6560;   /* stone-500 */
+  --outline:            #C9C5BE;   /* stone-300 */
+  --outline-variant:    #E7E4DD;   /* stone-200 */
+
+  /* Semantic */
+  --success:            #188038;
+  --success-container:  #E6F4EA;
+  --on-success:         #FFFFFF;
+  --error:              #C5221F;
+  --error-container:    #FCE8E6;
+  --on-error:           #FFFFFF;
+  --warning:            #E37400;
+  --warning-container:  #FEF7E0;
+
+  /* M3 elevation shadows (minimal — tonal is primary signal) */
+  --shadow-1: 0 1px 2px rgba(0,0,0,0.06);
+  --shadow-2: 0 2px 6px rgba(0,0,0,0.10);
+  --shadow-3: 0 4px 12px rgba(0,0,0,0.12);
+  --shadow-4: 0 6px 20px rgba(0,0,0,0.14);
+
+  /* M3 shape tokens */
+  --shape-xs:  4px;
+  --shape-sm:  8px;
+  --shape-md:  12px;
+  --shape-lg:  16px;
+  --shape-xl:  28px;
+  --shape-full:9999px;
+
+  /* M3 motion easing */
+  --ease-standard:   cubic-bezier(0.2, 0, 0, 1.0);
+  --ease-decelerate: cubic-bezier(0, 0, 0, 1);
+  --ease-accelerate: cubic-bezier(0.3, 0, 1, 1);
+
+  /* M3 duration tokens */
+  --dur-short1:  50ms;
+  --dur-short2:  100ms;
+  --dur-medium1: 200ms;
+  --dur-medium2: 250ms;
+  --dur-long1:   300ms;
+  --dur-long2:   350ms;
 }
 
+/* ── M3 Tonal Color Roles — Dark ───────────────────────────────────────── */
 [data-theme="dark"] {
-  --bg:        #0f0f1a;
-  --surface:   #1a1a2e;
-  --surface2:  #242437;
-  --border:    #2d2d4a;
-  --text:      #f0effe;
-  --text2:     #9ca3af;
-  --text3:     #6b7280;
-  --primary:   #818cf8;
-  --primary-l: #1e1b4b;
-  --primary-d: #a5b4fc;
-  --success:   #4ade80;
-  --success-l: #052e16;
-  --danger:    #f87171;
-  --danger-l:  #450a0a;
-  --warning:   #fb923c;
-  --shadow-sm: 0 1px 3px rgba(0,0,0,0.3);
-  --shadow-md: 0 4px 12px rgba(0,0,0,0.4);
-  --shadow-lg: 0 10px 30px rgba(0,0,0,0.5);
+  --primary:            #D5C7AD;
+  --on-primary:         #2C2215;
+  --primary-container:  #4A3D28;   /* dark warm brown container */
+  --on-primary-container: #EDE5D4;
+
+  --surface:            #111009;
+  --surface-container:  #1E1C19;
+  --surface-container-high: #2C2A27;
+  --surface-container-highest: #3C3935;
+  --bg:                 #111009;
+
+  /* ↑ Contrast fix: variant text is now clearly readable on dark surfaces */
+  --on-surface:         #F0EBE3;
+  --on-surface-variant: #C9C0B8;   /* was #9C9288 — lifted by ~40% lightness */
+  --outline:            #7A7068;   /* was #6B6560 — more visible borders */
+  --outline-variant:    #4A4642;   /* was #3A3631 — card borders now visible */
+
+  --success:            #6FCF86;
+  --success-container:  #0D3B1E;
+  --error:              #FF8A80;
+  --error-container:    #4A1210;
+  --warning:            #FFBA57;
+  --warning-container:  #472800;
+
+  --shadow-1: 0 1px 2px rgba(0,0,0,0.35);
+  --shadow-2: 0 2px 6px rgba(0,0,0,0.45);
+  --shadow-3: 0 4px 12px rgba(0,0,0,0.55);
+  --shadow-4: 0 6px 20px rgba(0,0,0,0.60);
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg:        #0f0f1a;
-    --surface:   #1a1a2e;
-    --surface2:  #242437;
-    --border:    #2d2d4a;
-    --text:      #f0effe;
-    --text2:     #9ca3af;
-    --text3:     #6b7280;
-    --primary:   #818cf8;
-    --primary-l: #1e1b4b;
-    --primary-d: #a5b4fc;
-    --success:   #4ade80;
-    --success-l: #052e16;
-    --danger:    #f87171;
-    --danger-l:  #450a0a;
-    --warning:   #fb923c;
-    --shadow-sm: 0 1px 3px rgba(0,0,0,0.3);
-    --shadow-md: 0 4px 12px rgba(0,0,0,0.4);
-    --shadow-lg: 0 10px 30px rgba(0,0,0,0.5);
+    --primary:            #D5C7AD;
+    --on-primary:         #2C2215;
+    --primary-container:  #4A3D28;
+    --on-primary-container: #EDE5D4;
+    --surface:            #111009;
+    --surface-container:  #1E1C19;
+    --surface-container-high: #2C2A27;
+    --surface-container-highest: #3C3935;
+    --bg:                 #111009;
+    --on-surface:         #F0EBE3;
+    --on-surface-variant: #C9C0B8;
+    --outline:            #7A7068;
+    --outline-variant:    #4A4642;
+    --success:            #6FCF86;
+    --success-container:  #0D3B1E;
+    --error:              #FF8A80;
+    --error-container:    #4A1210;
+    --warning:            #FFBA57;
+    --warning-container:  #472800;
+    --shadow-1: 0 1px 2px rgba(0,0,0,0.35);
+    --shadow-2: 0 2px 6px rgba(0,0,0,0.45);
+    --shadow-3: 0 4px 12px rgba(0,0,0,0.55);
+    --shadow-4: 0 6px 20px rgba(0,0,0,0.60);
   }
 }
 
-/* ── Animations ───────────────────────────────────────────────────────────── */
-@keyframes pulsate {
-  0%, 100% { transform: scale(1); }
-  50%       { transform: scale(1.1); }
-}
-@keyframes fadeSlideIn {
-  from { opacity: 0; transform: translateY(10px); }
+/* ── Keyframes — M3 motion ─────────────────────────────────────────────── */
+@keyframes enterScreen {
+  from { opacity: 0; transform: translateY(12px); }
   to   { opacity: 1; transform: translateY(0); }
 }
+@keyframes pulsate {
+  0%, 100% { transform: scale(1); }
+  50%       { transform: scale(1.12); }
+}
 @keyframes revealLetter {
-  from { opacity: 0; transform: translateY(-8px) scale(0.8); }
+  from { opacity: 0; transform: translateY(-10px) scale(0.78); }
   to   { opacity: 1; transform: translateY(0) scale(1); }
 }
-@keyframes pop {
-  0%   { transform: scale(1); }
-  50%  { transform: scale(1.15); }
-  100% { transform: scale(1); }
+@keyframes pulseSoft {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.5; }
 }
 
-.animate-pulsate      { animation: pulsate 0.6s ease-in-out infinite; }
-.animate-fade-slide   { animation: fadeSlideIn 0.3s ease-out forwards; }
-.animate-reveal       { animation: revealLetter 0.2s ease-out forwards; }
-.animate-pop          { animation: pop 0.25s ease-out; }
+/* dur-long1, decelerate — M3 screen enter */
+.animate-enter     { animation: enterScreen var(--dur-long1) var(--ease-decelerate) both; }
+.animate-pulsate   { animation: pulsate 0.55s var(--ease-standard) infinite; }
+.animate-reveal    { animation: revealLetter var(--dur-medium2) var(--ease-decelerate) both; }
+.animate-pulse-soft{ animation: pulseSoft 1.4s var(--ease-standard) infinite; }
 
-/* ── Base ─────────────────────────────────────────────────────────────────── */
+/* ── Base ──────────────────────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
   background: var(--bg);
-  color: var(--text);
-  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  color: var(--on-surface);
+  /* Apple HIG: system-ui stack for native feel */
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
   min-height: 100dvh;
   -webkit-font-smoothing: antialiased;
-  transition: background 0.2s, color 0.2s;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background var(--dur-medium2) var(--ease-standard),
+              color      var(--dur-medium2) var(--ease-standard);
 }
 
 #root { min-height: 100dvh; display: flex; flex-direction: column; }
 
-/* ── Utility classes ──────────────────────────────────────────────────────── */
+/* ── Apple HIG type roles ──────────────────────────────────────────────── */
+/* Display — 36px, regular, -0.25px  */
+.type-display {
+  font-size: 2.25rem; font-weight: 400;
+  line-height: 1.15; letter-spacing: -0.25px;
+}
+/* Headline — 28px bold */
+.type-headline {
+  font-size: 1.75rem; font-weight: 700;
+  line-height: 1.3; letter-spacing: -0.1px;
+}
+/* Title Large — 22px bold */
+.type-title-lg {
+  font-size: 1.375rem; font-weight: 700;
+  line-height: 1.3; letter-spacing: -0.05px;
+}
+/* Title Medium — 16px semibold, +0.15px */
+.type-title-md {
+  font-size: 1rem; font-weight: 600;
+  line-height: 1.5; letter-spacing: 0.15px;
+}
+/* Body Large — 16px regular */
+.type-body-lg {
+  font-size: 1rem; font-weight: 400;
+  line-height: 1.5; letter-spacing: 0.5px;
+}
+/* Body Medium — 14px regular */
+.type-body-md {
+  font-size: 0.875rem; font-weight: 400;
+  line-height: 1.43; letter-spacing: 0.25px;
+}
+/* Label Large — 14px medium */
+.type-label-lg {
+  font-size: 0.875rem; font-weight: 500;
+  line-height: 1.43; letter-spacing: 0.1px;
+}
+/* Label Medium — 12px medium */
+.type-label-md {
+  font-size: 0.75rem; font-weight: 500;
+  line-height: 1.33; letter-spacing: 0.5px;
+}
+/* Label Small — 11px medium, caps — Airbnb section header style */
+.label {
+  font-size: 0.6875rem; font-weight: 500;
+  line-height: 1.45; letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: var(--on-surface-variant);
+}
+
+/* ── M3 Surface cards ──────────────────────────────────────────────────── */
+/* Level 1 — default card */
 .card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow-sm);
+  background: var(--surface-container);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--shape-md);  /* 12dp */
 }
+/* Level 2 — elevated card, dialog */
 .card-elevated {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow-md);
+  background: var(--surface-container-high);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--shape-md);
+  box-shadow: var(--shadow-2);
 }
+/* Inset surface — input bg, secondary areas */
+.card-inset {
+  background: var(--surface-container-highest);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--shape-sm);  /* 8dp */
+}
+
+/* ── M3 + Apple buttons ────────────────────────────────────────────────── */
+/* Filled — primary action */
 .btn-primary {
+  position: relative; overflow: hidden;
   background: var(--primary);
-  color: #fff;
+  color: var(--on-primary);
   border: none;
-  border-radius: 12px;
-  font-weight: 800;
+  border-radius: var(--shape-sm);   /* 8dp */
+  font-size: 0.875rem; font-weight: 600; letter-spacing: 0.1px;
+  min-height: 48px;                 /* Apple HIG 48px touch target */
+  padding: 0 24px;
   cursor: pointer;
-  transition: transform 0.1s, box-shadow 0.1s, opacity 0.1s;
-  box-shadow: 0 4px 14px rgba(99,102,241,0.4);
+  transition: transform var(--dur-medium1) var(--ease-standard),
+              box-shadow var(--dur-medium1) var(--ease-standard);
+  box-shadow: var(--shadow-1);
 }
-.btn-primary:hover  { opacity: 0.92; box-shadow: 0 6px 20px rgba(99,102,241,0.45); }
-.btn-primary:active { transform: scale(0.97); }
-.btn-primary:disabled { opacity: 0.35; cursor: not-allowed; box-shadow: none; }
+/* M3 state layer — 8% on hover, 12% on press */
+.btn-primary::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: var(--on-primary);
+  opacity: 0;
+  transition: opacity var(--dur-medium1) var(--ease-standard);
+  pointer-events: none;
+}
+.btn-primary:hover:not(:disabled)::before  { opacity: 0.08; }
+.btn-primary:active:not(:disabled)::before { opacity: 0.12; }
+.btn-primary:hover:not(:disabled)  { transform: scale(1.02); box-shadow: var(--shadow-2); }
+.btn-primary:active:not(:disabled) { transform: scale(0.98); }
+.btn-primary:disabled { opacity: 0.38; cursor: not-allowed; box-shadow: none; }
 
-.btn-ghost {
+/* Tonal — secondary action */
+.btn-tonal {
+  position: relative; overflow: hidden;
+  background: var(--primary-container);
+  color: var(--on-primary-container);
+  border: none;
+  border-radius: var(--shape-sm);
+  font-size: 0.875rem; font-weight: 600; letter-spacing: 0.1px;
+  min-height: 48px; padding: 0 24px;
+  cursor: pointer;
+  transition: transform var(--dur-medium1) var(--ease-standard);
+}
+.btn-tonal::before {
+  content: ''; position: absolute; inset: 0;
+  background: var(--on-primary-container);
+  opacity: 0; transition: opacity var(--dur-medium1) var(--ease-standard);
+  pointer-events: none;
+}
+.btn-tonal:hover:not(:disabled)::before  { opacity: 0.08; }
+.btn-tonal:active:not(:disabled)::before { opacity: 0.12; }
+.btn-tonal:hover:not(:disabled)  { transform: scale(1.02); }
+.btn-tonal:active:not(:disabled) { transform: scale(0.98); }
+
+/* Outlined — ghost/secondary */
+.btn-outlined {
+  position: relative; overflow: hidden;
   background: transparent;
-  border: 1.5px solid var(--border);
-  color: var(--text2);
-  border-radius: 12px;
-  font-weight: 600;
+  color: var(--primary);
+  border: 1px solid var(--outline);
+  border-radius: var(--shape-sm);
+  font-size: 0.875rem; font-weight: 600; letter-spacing: 0.1px;
+  min-height: 48px; padding: 0 24px;
   cursor: pointer;
-  transition: border-color 0.15s, color 0.15s, transform 0.1s;
+  transition: transform var(--dur-medium1) var(--ease-standard),
+              border-color var(--dur-medium1) var(--ease-standard);
 }
-.btn-ghost:hover  { border-color: var(--primary); color: var(--primary); }
-.btn-ghost:active { transform: scale(0.97); }
+.btn-outlined::before {
+  content: ''; position: absolute; inset: 0;
+  background: var(--primary);
+  opacity: 0; transition: opacity var(--dur-medium1) var(--ease-standard);
+  pointer-events: none;
+}
+.btn-outlined:hover:not(:disabled)::before  { opacity: 0.08; }
+.btn-outlined:active:not(:disabled)::before { opacity: 0.12; }
+.btn-outlined:hover:not(:disabled)  { transform: scale(1.02); border-color: var(--primary); }
+.btn-outlined:active:not(:disabled) { transform: scale(0.98); }
 
-.input-field {
-  background: var(--surface2);
-  border: 1.5px solid var(--border);
-  border-radius: 12px;
-  color: var(--text);
-  font-weight: 700;
-  transition: border-color 0.15s, box-shadow 0.15s;
-  outline: none;
-  width: 100%;
+/* Danger outlined */
+.btn-danger {
+  position: relative; overflow: hidden;
+  background: var(--error-container);
+  color: var(--error);
+  border: 1px solid var(--error);
+  border-radius: var(--shape-sm);
+  font-size: 0.875rem; font-weight: 600; letter-spacing: 0.1px;
+  min-height: 48px; padding: 0 24px;
+  cursor: pointer;
+  transition: transform var(--dur-medium1) var(--ease-standard);
 }
-.input-field::placeholder { color: var(--text3); font-weight: 400; }
+.btn-danger:hover:not(:disabled)  { transform: scale(1.02); }
+.btn-danger:active:not(:disabled) { transform: scale(0.98); }
+
+/* ── M3 Outlined text field ────────────────────────────────────────────── */
+.input-field {
+  background: var(--surface);
+  border: 1px solid var(--outline);
+  border-radius: var(--shape-sm);   /* 8dp — standalone field */
+  color: var(--on-surface);
+  font-size: 1rem; font-weight: 500;
+  width: 100%;
+  transition: border-color var(--dur-medium1) var(--ease-standard),
+              box-shadow   var(--dur-medium1) var(--ease-standard);
+  outline: none;
+}
+.input-field::placeholder { color: var(--on-surface-variant); font-weight: 400; }
 .input-field:focus {
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(99,102,241,0.15);
+  border-width: 2px;
+  box-shadow: 0 0 0 3px rgba(181, 155, 110, 0.35);
 }
-.input-field:disabled { opacity: 0.4; cursor: not-allowed; }
+.input-field:disabled { opacity: 0.38; cursor: not-allowed; }
 
-.chip-active {
-  background: var(--primary-l);
-  border: 1.5px solid var(--primary);
-  color: var(--primary);
+/* ── M3 Selection chip ─────────────────────────────────────────────────── */
+.chip {
+  position: relative; overflow: hidden;
+  border-radius: var(--shape-sm);   /* 8dp */
+  border: 1px solid var(--outline);
+  background: var(--surface);
+  color: var(--on-surface-variant);
+  cursor: pointer;
+  font-size: 0.875rem; font-weight: 500;
+  transition: transform      var(--dur-medium1) var(--ease-standard),
+              border-color   var(--dur-medium1) var(--ease-standard),
+              background     var(--dur-medium1) var(--ease-standard),
+              color          var(--dur-medium1) var(--ease-standard);
 }
-.chip-inactive {
-  background: var(--surface2);
-  border: 1.5px solid var(--border);
-  color: var(--text2);
+.chip::before {
+  content: ''; position: absolute; inset: 0;
+  background: var(--primary);
+  opacity: 0; transition: opacity var(--dur-medium1) var(--ease-standard);
+  pointer-events: none;
+}
+.chip:hover::before  { opacity: 0.08; }
+.chip:active::before { opacity: 0.12; }
+.chip:hover  { transform: scale(1.02); border-color: var(--primary); }
+.chip:active { transform: scale(0.98); }
+.chip[data-active="true"] {
+  background: var(--primary-container);
+  border-color: var(--primary);
+  color: var(--on-primary-container);
 }

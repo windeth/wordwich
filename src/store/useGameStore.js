@@ -10,7 +10,7 @@ const TIME_WARP_DURATION = 30
 
 const initialRoundState = {
   prompt: null,
-  masterWord: null, // string | null
+  masterWord: null,
   bridgeData: null,
   insightUsed: false,
   bridgeUsed: false,
@@ -25,29 +25,36 @@ const initialRoundState = {
 }
 
 export const useGameStore = create((set, get) => ({
-  screen: 'setup',
+  screen: 'home',
   players: [],
-  gameMode: 'classic',
-  roundLimit: 3,
+  gameMode: 'beatTheClock',
+  roundLimit: null,
   difficulty: 'medium',
+  multiplayerType: null, // null = single player | 'local' | 'host'
 
   ...initialRoundState,
 
+  // ── Navigation ─────────────────────────────────────────────────────────────
+  navigate: (screen) => set({ screen }),
+  setMultiplayerType: (type) => set({ multiplayerType: type }),
+
   // ── Setup ──────────────────────────────────────────────────────────────────
   setPlayers: (players) => set({ players }),
-  setGameMode: (gameMode) => set({ gameMode }),
   setRoundLimit: (roundLimit) => set({ roundLimit }),
   setDifficulty: (difficulty) => set({ difficulty }),
 
   // ── Game start ─────────────────────────────────────────────────────────────
   startGame: () => {
-    const { difficulty } = get()
+    const { difficulty, multiplayerType } = get()
+    // local multiplayer = classic (turn-based), everything else = beat the clock
+    const gameMode = multiplayerType === 'local' ? 'classic' : 'beatTheClock'
     const prompt = generatePrompt(difficulty)
     const masterWord = findMasterWord(prompt.startLetter, prompt.endLetter, difficulty)
     const bridgeData = findBridgeWord(prompt.startLetter, prompt.endLetter)
     set({
       ...initialRoundState,
       screen: 'game',
+      gameMode,
       prompt,
       masterWord,
       bridgeData,
@@ -192,11 +199,12 @@ export const useGameStore = create((set, get) => ({
   surrender: () => get().resetGame(),
 
   resetGame: () => set({
-    screen: 'setup',
+    screen: 'home',
     players: [],
-    gameMode: 'classic',
-    roundLimit: 3,
+    gameMode: 'beatTheClock',
+    roundLimit: null,
     difficulty: 'medium',
+    multiplayerType: null,
     ...initialRoundState,
   }),
 }))

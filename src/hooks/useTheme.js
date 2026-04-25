@@ -10,7 +10,7 @@ function applyTheme(theme) {
 
 export function useTheme() {
   const [theme, setTheme] = useState(() => {
-    const saved = localStorage.getItem('wordible_theme')
+    const saved = localStorage.getItem('wordwich_theme')
     return saved || 'system'
   })
 
@@ -20,8 +20,8 @@ export function useTheme() {
     } else {
       applyTheme(theme)
     }
-    if (theme !== 'system') localStorage.setItem('wordible_theme', theme)
-    else localStorage.removeItem('wordible_theme')
+    if (theme !== 'system') localStorage.setItem('wordwich_theme', theme)
+    else localStorage.removeItem('wordwich_theme')
   }, [theme])
 
   // Listen for system changes when in 'system' mode

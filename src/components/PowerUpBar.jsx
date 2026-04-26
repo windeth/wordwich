@@ -3,7 +3,7 @@ import { Lightbulb, Link2, Clock } from 'lucide-react'
 import { useGameStore } from '../store/useGameStore'
 
 const POWERUPS = [
-  { key: 'insight',  label: 'Insight',   cost: 5, icon: Lightbulb, desc: 'Reveal the Master Word' },
+  { key: 'insight',  label: 'Insight',   cost: 5, icon: Lightbulb, desc: 'Hint: see the Master Word’s definition' },
   { key: 'bridge',   label: 'Bridge',    cost: 2, icon: Link2,     desc: 'Middle 2 letters (not scored)' },
   { key: 'timeWarp', label: 'Time Warp', cost: 5, icon: Clock,     desc: 'Freeze timer for 30s' },
 ]

@@ -1,4 +1,5 @@
 import wordsRaw from '../data/words.json'
+import qualifiedRaw from '../data/qualified-master-words.json'
 
 // ── Scientific/technical suffix filter ────────────────────────────────────
 const SCIENTIFIC_SUFFIXES = [
@@ -36,6 +37,14 @@ function isEasyFamiliar(word) {
 export const wordsSet = new Set(wordsRaw)
 
 // ── Master word pool by difficulty ────────────────────────────────────────
+// Master words must have a dictionary definition (so the Insight power-up has
+// something to reveal). The qualified list is built offline by
+// scripts/qualify-master-words.sh against api.dictionaryapi.dev.
+// If the qualified list is empty (e.g. the script hasn't been run yet), we fall
+// back to the unfiltered pool so dev still works.
+const qualifiedMasterWords = new Set(qualifiedRaw)
+const filterByQualified = qualifiedMasterWords.size > 0
+
 const masterPoolEasy = []
 const masterPoolMedium = []
 const masterPoolHard = []
@@ -43,6 +52,7 @@ const masterPoolHard = []
 for (const word of wordsRaw) {
   if (word.length < 4 || word.length > 15) continue
   if (isScientific(word)) continue
+  if (filterByQualified && !qualifiedMasterWords.has(word)) continue
   if (isEasyFamiliar(word)) masterPoolEasy.push(word)
   if (word.length <= 12) masterPoolMedium.push(word)
   masterPoolHard.push(word) // all non-scientific words up to 15 letters
@@ -63,6 +73,22 @@ for (const [key, count] of Object.entries(pairCounts)) {
   if (count >= 200) promptPools.easy.push(pair)
   else if (count >= 50) promptPools.medium.push(pair)
   else promptPools.hard.push(pair)
+}
+
+// Drop prompt pairs that have no qualified Master Word at that difficulty.
+// Mirrors findMasterWord's lookup (difficulty pool, then masterPoolMedium fallback).
+function pairHasMaster(s, e, pool) {
+  for (const w of pool) if (w[0] === s && w[w.length - 1] === e) return true
+  if (pool !== masterPoolMedium) {
+    for (const w of masterPoolMedium) if (w[0] === s && w[w.length - 1] === e) return true
+  }
+  return false
+}
+const masterByDifficulty = { easy: masterPoolEasy, medium: masterPoolMedium, hard: masterPoolHard }
+for (const d of ['easy', 'medium', 'hard']) {
+  promptPools[d] = promptPools[d].filter(({ startLetter, endLetter }) =>
+    pairHasMaster(startLetter, endLetter, masterByDifficulty[d])
+  )
 }
 
 export function generatePrompt(difficulty = 'medium') {

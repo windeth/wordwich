@@ -1,6 +1,8 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { Lightbulb, Loader2 } from 'lucide-react'
 import { useTimer } from '../../hooks/useTimer'
 import { useGameStore } from '../../store/useGameStore'
+import { fetchDefinition } from '../../game/engine'
 import Timer from '../Timer'
 import WordInput from '../WordInput'
 import PowerUpBar from '../PowerUpBar'
@@ -22,6 +24,24 @@ export default function GameScreen() {
   const gameMode           = useGameStore(s => s.gameMode)
   const surrender          = useGameStore(s => s.surrender)
   const currentPlayer      = players[currentPlayerIndex]
+
+  const [insightHint, setInsightHint] = useState(null)
+  const [insightLoading, setInsightLoading] = useState(false)
+
+  useEffect(() => {
+    if (!insightUsed || !masterWord) {
+      setInsightHint(null); setInsightLoading(false)
+      return
+    }
+    let cancelled = false
+    setInsightLoading(true)
+    fetchDefinition(masterWord).then(def => {
+      if (cancelled) return
+      setInsightLoading(false)
+      setInsightHint(def)
+    })
+    return () => { cancelled = true }
+  }, [insightUsed, masterWord])
 
   return (
     <div className="animate-enter" style={{
@@ -102,21 +122,36 @@ export default function GameScreen() {
         </div>
       )}
 
-      {/* ── Insight reveal */}
+      {/* ── Insight hint — definition of the Master Word, never the word itself */}
       {insightUsed && masterWord && (
         <div className="animate-enter" style={{
-          padding: '16px 20px', textAlign: 'center',
+          padding: '16px 20px',
           background: 'var(--primary-container)',
           border: '1px solid var(--primary)',
           borderRadius: 'var(--shape-md)',
         }}>
-          <span className="label" style={{ display: 'block', marginBottom: '8px', color: 'var(--on-primary-container)' }}>
-            Master Word
-          </span>
-          <p style={{ fontSize: '1.75rem', fontWeight: 900, letterSpacing: '-0.02em',
-            textTransform: 'uppercase', color: 'var(--on-primary-container)' }}>
-            {masterWord}
-          </p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+            <Lightbulb size={14} style={{ color: 'var(--on-primary-container)' }} />
+            <span className="label" style={{ color: 'var(--on-primary-container)' }}>
+              Hint — Master Word definition
+            </span>
+          </div>
+          {insightLoading ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Loader2 size={14} className="animate-pulse-soft" style={{ color: 'var(--on-primary-container)' }} />
+              <span className="type-body-md" style={{ color: 'var(--on-primary-container)' }}>Looking up hint…</span>
+            </div>
+          ) : insightHint ? (
+            <p className="type-body-md" style={{
+              color: 'var(--on-primary-container)', fontStyle: 'italic', lineHeight: 1.5,
+            }}>
+              {insightHint}
+            </p>
+          ) : (
+            <p className="type-body-md" style={{ color: 'var(--on-primary-container)' }}>
+              No hint available for this word.
+            </p>
+          )}
         </div>
       )}
 

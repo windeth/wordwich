@@ -25,7 +25,7 @@ const sections = [
     icon: Zap,
     title: 'Power-Ups',
     items: [
-      { name: 'Insight', cost: '5 pts', desc: 'Reveals the Master Word — the longest valid word for this prompt.' },
+      { name: 'Insight', cost: '5 pts', desc: 'Reveals the Master Word’s definition as a hint — the word itself stays hidden.' },
       { name: 'The Bridge', cost: '2 pts', desc: 'Reveals 2 middle letters of a valid 8-letter word. These letters do not count toward your score.' },
       { name: 'Time Warp', cost: '5 pts', desc: 'Freezes the countdown timer for 30 seconds so you can think.' },
     ],

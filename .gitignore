@@ -24,3 +24,5 @@ dist-ssr
 *.sw?
 src/data/enable1.txt
 src/App.css
+scripts/.qualification-cache.json
+.claude/

@@ -13,12 +13,18 @@ export default function SoloClassicSetupScreen() {
   const navigate      = useGameStore(s => s.navigate)
   const setRoundLimit = useGameStore(s => s.setRoundLimit)
   const setPlayers    = useGameStore(s => s.setPlayers)
+  const startGame     = useGameStore(s => s.startGame)
   const [selected, setSelected] = useState(5)
 
   function handleContinue() {
     setRoundLimit(selected)
     setPlayers([{ id: 0, name: 'Player 1', score: 0, streak: 0, longestWord: '', roundsWon: 0 }])
-    navigate('difficulty')
+    if (selected === null) {
+      // Unlimited rounds: difficulty auto-progresses; skip the picker.
+      startGame()
+    } else {
+      navigate('difficulty')
+    }
   }
 
   return (

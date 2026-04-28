@@ -2,12 +2,6 @@ import { Trophy } from 'lucide-react'
 import { useGameStore } from '../../store/useGameStore'
 import { getAllRuns } from '../../lib/highScores'
 
-const DIFFICULTIES = [
-  { key: 'easy',   label: 'Easy' },
-  { key: 'medium', label: 'Medium' },
-  { key: 'hard',   label: 'Hard' },
-]
-
 function fmtTime(s) {
   const m = Math.floor(s / 60)
   const sec = s % 60
@@ -23,9 +17,10 @@ export default function HighScoresScreen() {
   const navigate = useGameStore(s => s.navigate)
   const runs = getAllRuns()
 
-  const buckets = DIFFICULTIES
-    .map(d => ({ ...d, entries: (runs[`btc_${d.key}`] ?? []).slice(0, 5) }))
-    .filter(b => b.entries.length > 0)
+  const progressive = (runs.btc_progressive ?? []).slice(0, 10)
+  const buckets = progressive.length > 0
+    ? [{ key: 'progressive', label: 'Beat the Clock', entries: progressive }]
+    : []
 
   const hasAny = buckets.length > 0
 

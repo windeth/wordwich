@@ -31,12 +31,16 @@ export default function WordInput() {
       setValue('')
       setTimeout(() => setFeedback(null), 2500)
     } else {
-      // Consolidated reminder of all the rules
       const start = prompt?.startLetter?.toUpperCase() ?? '?'
       const end   = prompt?.endLetter?.toUpperCase() ?? '?'
+      // Show the specific reason for reuse + length errors; otherwise a consolidated reminder.
+      const isSpecific = result.reason === 'Already used this game.'
+        || result.reason?.startsWith('Word must be at least')
       setFeedback({
         ok: false,
-        msg: `Try again — must be a real English word, at least 4 letters, starting with ${start} and ending with ${end}.`,
+        msg: isSpecific
+          ? result.reason
+          : `Try again — must be a real English word, at least 4 letters, starting with ${start} and ending with ${end}.`,
       })
       // Clear input so the player can retry from scratch.
       setValue('')

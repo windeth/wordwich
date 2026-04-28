@@ -36,6 +36,25 @@ function isEasyFamiliar(word) {
 // Validated word set (all valid submissions)
 export const wordsSet = new Set(wordsRaw)
 
+// ── Difficulty tiers ──────────────────────────────────────────────────────
+// 6-tier ladder used by BTC (auto-progresses every 5 words) and unlimited
+// Solo Classic (auto-progresses every 5 rounds). The fixed-round Solo Classic
+// flow still uses the legacy easy/medium/hard tiers via the difficulty picker.
+export const DIFFICULTY_TIERS = ['veryEasy', 'easy', 'medium', 'difficult', 'veryDifficult', 'einstein']
+export const DIFFICULTY_LABELS = {
+  veryEasy:      'Very Easy',
+  easy:          'Easy',
+  medium:        'Medium',
+  difficult:     'Difficult',
+  veryDifficult: 'Very Difficult',
+  einstein:      'Einstein 🧠',
+  hard:          'Hard', // legacy alias
+}
+
+// Einstein mode: weight prompts toward letter pairs that contain at least one
+// of these "difficult" letters as the start or end letter.
+const EINSTEIN_LETTERS = new Set(['j', 'q', 'v', 'x', 'z'])
+
 // ── Master word pool by difficulty ────────────────────────────────────────
 // Master words must have a dictionary definition (so the Insight power-up has
 // something to reveal). The qualified list is built offline by
@@ -65,18 +84,31 @@ for (const word of wordsRaw) {
   pairCounts[key] = (pairCounts[key] || 0) + 1
 }
 
-const promptPools = { easy: [], medium: [], hard: [] }
+// Six-tier ladder by letter-pair word count.
+const promptPools = {
+  veryEasy:      [],
+  easy:          [],
+  medium:        [],
+  difficult:     [],
+  veryDifficult: [],
+  einstein:      [],
+}
 for (const [key, count] of Object.entries(pairCounts)) {
   const [s, e] = key.split('')
   if (s === e) continue
   const pair = { startLetter: s, endLetter: e }
-  if (count >= 200) promptPools.easy.push(pair)
-  else if (count >= 50) promptPools.medium.push(pair)
-  else promptPools.hard.push(pair)
+  if (count >= 1500)      promptPools.veryEasy.push(pair)
+  else if (count >= 500)  promptPools.easy.push(pair)
+  else if (count >= 150)  promptPools.medium.push(pair)
+  else if (count >= 40)   promptPools.difficult.push(pair)
+  else                    promptPools.veryDifficult.push(pair)
+  // Einstein: any pair containing a difficult letter (J/Q/V/X/Z) at start or end.
+  if (EINSTEIN_LETTERS.has(s) || EINSTEIN_LETTERS.has(e)) {
+    promptPools.einstein.push(pair)
+  }
 }
 
-// Drop prompt pairs that have no qualified Master Word at that difficulty.
-// Mirrors findMasterWord's lookup (difficulty pool, then masterPoolMedium fallback).
+// Drop prompt pairs that have no qualified Master Word at the tier's master pool.
 function pairHasMaster(s, e, pool) {
   for (const w of pool) if (w[0] === s && w[w.length - 1] === e) return true
   if (pool !== masterPoolMedium) {
@@ -84,16 +116,37 @@ function pairHasMaster(s, e, pool) {
   }
   return false
 }
-const masterByDifficulty = { easy: masterPoolEasy, medium: masterPoolMedium, hard: masterPoolHard }
-for (const d of ['easy', 'medium', 'hard']) {
-  promptPools[d] = promptPools[d].filter(({ startLetter, endLetter }) =>
-    pairHasMaster(startLetter, endLetter, masterByDifficulty[d])
+const masterPoolByTier = {
+  veryEasy:      masterPoolEasy,
+  easy:          masterPoolEasy,
+  medium:        masterPoolMedium,
+  difficult:     masterPoolHard,
+  veryDifficult: masterPoolHard,
+  einstein:      masterPoolHard,
+}
+for (const tier of Object.keys(promptPools)) {
+  const masterPool = masterPoolByTier[tier] ?? masterPoolMedium
+  promptPools[tier] = promptPools[tier].filter(({ startLetter, endLetter }) =>
+    pairHasMaster(startLetter, endLetter, masterPool)
   )
 }
 
+// Legacy 3-tier names map onto the new ladder for the difficulty picker
+// (multiplayer Classic + fixed-round Solo Classic).
+const LEGACY_DIFFICULTY_ALIAS = { hard: 'difficult' }
+
 export function generatePrompt(difficulty = 'medium') {
-  const pool = promptPools[difficulty]
+  const tier = LEGACY_DIFFICULTY_ALIAS[difficulty] ?? difficulty
+  const pool = promptPools[tier] ?? promptPools.medium
+  if (!pool.length) return promptPools.medium[Math.floor(Math.random() * promptPools.medium.length)]
   return pool[Math.floor(Math.random() * pool.length)]
+}
+
+// ── Auto-progressive difficulty ───────────────────────────────────────────
+// Bumps one tier every `step` correct words/rounds, capped at Einstein.
+export function difficultyForProgress(step) {
+  const idx = Math.min(step, DIFFICULTY_TIERS.length - 1)
+  return DIFFICULTY_TIERS[idx]
 }
 
 export function validateWord(word, startLetter, endLetter) {
@@ -108,8 +161,9 @@ export function validateWord(word, startLetter, endLetter) {
 export function findMasterWord(startLetter, endLetter, difficulty = 'medium') {
   const s = startLetter.toLowerCase()
   const e = endLetter.toLowerCase()
-  const pool = difficulty === 'easy' ? masterPoolEasy
-    : difficulty === 'hard' ? masterPoolHard
+  const tier = LEGACY_DIFFICULTY_ALIAS[difficulty] ?? difficulty
+  const pool = (tier === 'veryEasy' || tier === 'easy') ? masterPoolEasy
+    : (tier === 'difficult' || tier === 'veryDifficult' || tier === 'einstein') ? masterPoolHard
     : masterPoolMedium
 
   let best = null

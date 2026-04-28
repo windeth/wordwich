@@ -10,14 +10,13 @@ function fmtTime(s) {
 
 export default function BTCGameOverScreen() {
   const lastResult = useGameStore(s => s.lastBTCResult)
-  const difficulty = useGameStore(s => s.difficulty)
   const startGame  = useGameStore(s => s.startGame)
   const resetGame  = useGameStore(s => s.resetGame)
 
   const words        = lastResult?.words ?? 0
   const timeSurvived = lastResult?.timeSurvived ?? 0
   const isNewBest    = lastResult?.isNewBest ?? false
-  const best         = getBTCBest(difficulty)
+  const best         = getBTCBest()
 
   return (
     <div className="animate-enter" style={{
@@ -34,7 +33,7 @@ export default function BTCGameOverScreen() {
           Game Over
         </h1>
         <p className="type-body-md" style={{ marginTop: 8, color: 'var(--on-surface-variant)' }}>
-          Beat the Clock · {difficulty}
+          Beat the Clock
         </p>
       </div>
 

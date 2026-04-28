@@ -4,6 +4,8 @@ import { useGameStore } from '../../store/useGameStore'
 export default function SinglePlayerScreen() {
   const navigate    = useGameStore(s => s.navigate)
   const setGameMode = useGameStore(s => s.setGameMode)
+  const setPlayers  = useGameStore(s => s.setPlayers)
+  const startGame   = useGameStore(s => s.startGame)
 
   function pickClassic() {
     setGameMode('classic')
@@ -11,8 +13,10 @@ export default function SinglePlayerScreen() {
   }
 
   function pickBTC() {
+    // BTC has auto-progressing difficulty — no picker, jump straight in.
     setGameMode('beatTheClock')
-    navigate('difficulty')
+    setPlayers([{ id: 0, name: 'Player 1', score: 0, streak: 0, longestWord: '', roundsWon: 0 }])
+    startGame()
   }
 
   return (

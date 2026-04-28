@@ -13,10 +13,7 @@ export default function DifficultyScreen() {
   const startGame        = useGameStore(s => s.startGame)
   const multiplayerType  = useGameStore(s => s.multiplayerType)
 
-  const gameMode = useGameStore(s => s.gameMode)
-  const backScreen = multiplayerType
-    ? 'multiplayer'
-    : (gameMode === 'beatTheClock' ? 'singleplayer' : 'soloclassicsetup')
+  const backScreen = multiplayerType ? 'multiplayer' : 'soloclassicsetup'
 
   function choose(key) {
     setDifficulty(key)

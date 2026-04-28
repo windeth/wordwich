@@ -61,7 +61,7 @@ export default function PowerUpBar() {
               onMouseUp={e    => { if (!disabled) e.currentTarget.style.transform = 'scale(1.02)' }}>
               <Icon size={16} style={{ color: disabled ? 'var(--on-surface-variant)' : 'var(--primary)' }} />
               <span className="type-label-md" style={{ color: 'var(--on-surface)' }}>{label}</span>
-              <span className="type-label-md" style={{ color: 'var(--primary)', fontWeight: 700 }}>{cost}pt</span>
+              <span className="type-label-md" style={{ color: 'var(--primary)', fontWeight: 700 }}>{cost} pts</span>
             </button>
           )
         })}

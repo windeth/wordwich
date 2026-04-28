@@ -43,7 +43,7 @@ export default function PlayerList() {
               )}
             </div>
             <span className="type-label-lg" style={{ color: 'var(--on-surface)', fontWeight: 800 }}>
-              {p.score}<span style={{ fontSize: '10px', fontWeight: 500, marginLeft: '2px', color: 'var(--on-surface-variant)' }}>pt</span>
+              {p.score}<span style={{ fontSize: '10px', fontWeight: 500, marginLeft: '2px', color: 'var(--on-surface-variant)' }}>pts</span>
             </span>
           </div>
         )

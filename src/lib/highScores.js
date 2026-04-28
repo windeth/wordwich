@@ -13,19 +13,21 @@ function save(data) {
   }
 }
 
-export function saveBTCRun({ difficulty, words, timeSurvived }) {
+// BTC is now a single progressive mode (no per-difficulty buckets).
+const BTC_BUCKET = 'btc_progressive'
+
+export function saveBTCRun({ words, timeSurvived }) {
   const all = load()
-  const bucket = `btc_${difficulty}`
   const entry = { words, timeSurvived, date: Date.now() }
-  all[bucket] = [...(all[bucket] ?? []), entry]
+  all[BTC_BUCKET] = [...(all[BTC_BUCKET] ?? []), entry]
     .sort((a, b) => b.timeSurvived - a.timeSurvived || b.words - a.words)
     .slice(0, 10)
   save(all)
-  return all[bucket][0]
+  return all[BTC_BUCKET][0]
 }
 
-export function getBTCBest(difficulty) {
-  return (load()[`btc_${difficulty}`] ?? [])[0] ?? null
+export function getBTCBest() {
+  return (load()[BTC_BUCKET] ?? [])[0] ?? null
 }
 
 export function getAllRuns() {

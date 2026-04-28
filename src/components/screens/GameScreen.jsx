@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react'
-import { Lightbulb, Loader2, Flag } from 'lucide-react'
+import { Lightbulb, Loader2, Flag, SkipForward } from 'lucide-react'
 import { useTimer } from '../../hooks/useTimer'
 import { useGameStore } from '../../store/useGameStore'
-import { fetchDefinition } from '../../game/engine'
+import { fetchDefinition, DIFFICULTY_LABELS } from '../../game/engine'
 import Timer from '../Timer'
 import WordInput from '../WordInput'
 import PowerUpBar from '../PowerUpBar'
 import PlayerList from '../PlayerList'
+import MilestoneToast from '../MilestoneToast'
 
 export default function GameScreen() {
   useTimer()
@@ -26,6 +27,7 @@ export default function GameScreen() {
   const wordsCompleted     = useGameStore(s => s.wordsCompleted)
   const surrender          = useGameStore(s => s.surrender)
   const passRound          = useGameStore(s => s.passRound)
+  const difficulty         = useGameStore(s => s.difficulty)
   const currentPlayer      = players[currentPlayerIndex]
 
   const isSolo = multiplayerType === null
@@ -78,26 +80,32 @@ export default function GameScreen() {
           }}>
             BEAT THE CLOCK
           </h1>
-          <span style={{
-            fontSize: '3.25rem', fontWeight: 900,
-            letterSpacing: '-0.03em', lineHeight: 1,
-            color: 'var(--primary)',
-          }}>
-            {wordsCompleted}
-          </span>
+          <div style={{ display: 'inline-flex', alignItems: 'baseline', gap: '10px' }}>
+            <span className="label" style={{ fontSize: '0.875rem' }}>Score:</span>
+            <span style={{
+              fontSize: '3.25rem', fontWeight: 900,
+              letterSpacing: '-0.03em', lineHeight: 1,
+              color: 'var(--primary)',
+            }}>
+              {wordsCompleted}
+            </span>
+          </div>
+          <span className="label">{DIFFICULTY_LABELS[difficulty] ?? difficulty}</span>
         </div>
       ) : (
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <span className="label">{headerLabel}</span>
-          <button onClick={() => setShowSurrender(true)}
-            className="type-label-md"
-            style={{ background: 'none', border: 'none', cursor: 'pointer',
-              color: 'var(--on-surface-variant)', padding: '8px',
-              transition: `color var(--dur-medium1) var(--ease-standard)` }}
-            onMouseEnter={e => e.currentTarget.style.color = 'var(--error)'}
-            onMouseLeave={e => e.currentTarget.style.color = 'var(--on-surface-variant)'}>
-            Surrender
-          </button>
+          {!isSolo && (
+            <button onClick={() => setShowSurrender(true)}
+              className="type-label-md"
+              style={{ background: 'none', border: 'none', cursor: 'pointer',
+                color: 'var(--on-surface-variant)', padding: '8px',
+                transition: `color var(--dur-medium1) var(--ease-standard)` }}
+              onMouseEnter={e => e.currentTarget.style.color = 'var(--error)'}
+              onMouseLeave={e => e.currentTarget.style.color = 'var(--on-surface-variant)'}>
+              Surrender
+            </button>
+          )}
         </div>
       )}
 
@@ -239,25 +247,37 @@ export default function GameScreen() {
       {/* ── Word input */}
       <WordInput />
 
-      {/* ── Pass (solo Classic) */}
-      {isSoloClassic && (
-        <button onClick={passRound}
-          className="btn-outlined"
-          style={{
-            width: '100%', borderRadius: 'var(--shape-md)', height: 44,
-            display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-            fontSize: '0.9rem', fontWeight: 700, color: 'var(--on-surface-variant)',
-          }}>
-          <Flag size={14} />
-          Pass this round
-        </button>
-      )}
-
       {/* ── Power-ups (hide in BTC) */}
       {!isBTC && <PowerUpBar />}
 
       {/* ── Player list (multiplayer only) */}
       {!isSolo && <PlayerList />}
+
+      {/* ── Skip + Surrender (solo Classic) */}
+      {isSoloClassic && (
+        <div style={{ display: 'flex', gap: 10, width: '100%', marginTop: 'auto' }}>
+          <button onClick={passRound}
+            className="btn-outlined"
+            style={{
+              flex: 1, borderRadius: 'var(--shape-md)', height: 44,
+              display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+              fontSize: '0.9rem', fontWeight: 700, color: 'var(--on-surface-variant)',
+            }}>
+            <SkipForward size={14} />
+            Skip
+          </button>
+          <button onClick={() => setShowSurrender(true)}
+            className="btn-outlined"
+            style={{
+              flex: 1, borderRadius: 'var(--shape-md)', height: 44,
+              display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+              fontSize: '0.9rem', fontWeight: 700, color: 'var(--on-surface-variant)',
+            }}>
+            <Flag size={14} />
+            Surrender
+          </button>
+        </div>
+      )}
 
       {/* ── Surrender (BTC bottom) */}
       {isBTC && (
@@ -273,6 +293,9 @@ export default function GameScreen() {
           Surrender
         </button>
       )}
+
+      {/* ── Milestone toast (top of viewport) */}
+      <MilestoneToast />
 
       {/* ── Surrender modal */}
       {showSurrender && (

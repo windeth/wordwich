@@ -6,7 +6,7 @@ import { saveBTCRun } from '../lib/highScores'
 const POWERUP_COSTS = { insight: 5, bridge: 2, timeWarp: 5 }
 const CLASSIC_TURN_SECONDS = 60
 const BTC_START_SECONDS = 180
-const BTC_WORD_BONUS = 60
+const BTC_WORD_BONUS = 20
 const TIME_WARP_DURATION = 30
 
 const initialRoundState = {
@@ -183,7 +183,7 @@ export const useGameStore = create((set, get) => ({
 
   // ── Player/Round advancement ───────────────────────────────────────────────
   advancePlayer: () => {
-    const { players, currentPlayerIndex, currentRound, roundLimit, gameMode, multiplayerType } = get()
+    const { players, currentPlayerIndex, currentRound, roundLimit, gameMode } = get()
     const nextIndex = (currentPlayerIndex + 1) % players.length
 
     if (nextIndex === 0) {
@@ -193,12 +193,6 @@ export const useGameStore = create((set, get) => ({
         p.id === roundWinner.id ? { ...p, roundsWon: p.roundsWon + 1 } : p
       )
       const isLastRound = gameMode === 'classic' && roundLimit && currentRound >= roundLimit
-      // Solo Classic: skip recap on the last round and go straight to end screen
-      if (multiplayerType === null && isLastRound) {
-        set({ players: updatedPlayers, isLastRound: true })
-        get().endSoloClassic()
-        return
-      }
       set({ players: updatedPlayers, screen: 'recap', isLastRound: !!isLastRound })
     } else {
       set({
@@ -235,7 +229,10 @@ export const useGameStore = create((set, get) => ({
   },
 
   // ── End-of-game flows ──────────────────────────────────────────────────────
-  endGame: () => set({ screen: 'halloffame' }),
+  endGame: () => {
+    const { multiplayerType } = get()
+    set({ screen: multiplayerType === null ? 'soloclassicend' : 'halloffame' })
+  },
 
   endBTCRun: () => {
     const { difficulty, wordsCompleted } = get()

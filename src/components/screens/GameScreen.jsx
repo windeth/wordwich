@@ -66,26 +66,48 @@ export default function GameScreen() {
     }}>
 
       {/* ── Header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <span className="label">{headerLabel}</span>
-        <button onClick={() => setShowSurrender(true)}
-          className="type-label-md"
-          style={{ background: 'none', border: 'none', cursor: 'pointer',
-            color: 'var(--on-surface-variant)', padding: '8px',
-            transition: `color var(--dur-medium1) var(--ease-standard)` }}
-          onMouseEnter={e => e.currentTarget.style.color = 'var(--error)'}
-          onMouseLeave={e => e.currentTarget.style.color = 'var(--on-surface-variant)'}>
-          Surrender
-        </button>
-      </div>
+      {isBTC ? (
+        <div style={{
+          display: 'flex', flexDirection: 'column', alignItems: 'center',
+          gap: '8px', padding: '8px 0 4px',
+        }}>
+          <h1 style={{
+            fontSize: '2rem', fontWeight: 900,
+            letterSpacing: '0.04em', lineHeight: 1,
+            color: 'var(--on-surface)',
+          }}>
+            BEAT THE CLOCK
+          </h1>
+          <span style={{
+            fontSize: '3.25rem', fontWeight: 900,
+            letterSpacing: '-0.03em', lineHeight: 1,
+            color: 'var(--primary)',
+          }}>
+            {wordsCompleted}
+          </span>
+        </div>
+      ) : (
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <span className="label">{headerLabel}</span>
+          <button onClick={() => setShowSurrender(true)}
+            className="type-label-md"
+            style={{ background: 'none', border: 'none', cursor: 'pointer',
+              color: 'var(--on-surface-variant)', padding: '8px',
+              transition: `color var(--dur-medium1) var(--ease-standard)` }}
+            onMouseEnter={e => e.currentTarget.style.color = 'var(--error)'}
+            onMouseLeave={e => e.currentTarget.style.color = 'var(--on-surface-variant)'}>
+            Surrender
+          </button>
+        </div>
+      )}
 
       {/* ── Prompt card */}
       <div className="card-elevated" style={{ padding: '40px 32px', textAlign: 'center' }}>
-        <span className="label" style={{ display: 'block', marginBottom: '24px' }}>Your word</span>
+        <span className="label" style={{ display: 'block', marginBottom: '24px' }}>Your word should</span>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '24px' }}>
           {[
-            { letter: prompt?.startLetter, role: 'starts with' },
-            { letter: prompt?.endLetter,   role: 'ends with'   },
+            { letter: prompt?.startLetter, role: 'start with' },
+            { letter: prompt?.endLetter,   role: 'end with'   },
           ].map(({ letter, role }) => (
             <div key={role} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
               <div style={{
@@ -167,16 +189,6 @@ export default function GameScreen() {
         </div>
       )}
 
-      {/* ── Words counter (BTC) */}
-      {isBTC && (
-        <div className="card" style={{ padding: '16px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <span className="label">Words completed</span>
-          <span style={{ fontSize: '1.75rem', fontWeight: 900, color: 'var(--primary)', letterSpacing: '-0.02em', lineHeight: 1 }}>
-            {wordsCompleted}
-          </span>
-        </div>
-      )}
-
       {/* ── Active player card (multiplayer only) */}
       {!isSolo && (
         <div className="card" style={{ padding: '20px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -246,6 +258,21 @@ export default function GameScreen() {
 
       {/* ── Player list (multiplayer only) */}
       {!isSolo && <PlayerList />}
+
+      {/* ── Surrender (BTC bottom) */}
+      {isBTC && (
+        <button onClick={() => setShowSurrender(true)}
+          className="btn-outlined"
+          style={{
+            width: '100%', borderRadius: 'var(--shape-md)', height: 44,
+            display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+            fontSize: '0.9rem', fontWeight: 700, color: 'var(--on-surface-variant)',
+            marginTop: 'auto',
+          }}>
+          <Flag size={14} />
+          Surrender
+        </button>
+      )}
 
       {/* ── Surrender modal */}
       {showSurrender && (

@@ -1,9 +1,9 @@
 import { useGameStore } from '../../store/useGameStore'
 
 const DIFFICULTIES = [
-  { key: 'easy',   emoji: '😊', label: 'Easy',   desc: 'More starting time' },
-  { key: 'medium', emoji: '🧠', label: 'Medium',  desc: 'Balanced challenge' },
-  { key: 'hard',   emoji: '🔥', label: 'Hard',    desc: 'Faster time drain'  },
+  { key: 'easy',   label: 'Easy'     },
+  { key: 'medium', label: 'Moderate' },
+  { key: 'hard',   label: 'Abstruse' },
 ]
 
 export default function DifficultyScreen() {
@@ -18,7 +18,6 @@ export default function DifficultyScreen() {
   function choose(key) {
     setDifficulty(key)
     if (multiplayerType === null) {
-      // Single player — Player 1 already created (Solo Classic setup) OR ensure created (BTC)
       const existing = useGameStore.getState().players
       if (!existing.length) {
         setPlayers([{ id: 0, name: 'Player 1', score: 0, streak: 0, longestWord: '', roundsWon: 0 }])
@@ -42,34 +41,26 @@ export default function DifficultyScreen() {
         ← Back
       </button>
 
-      <div>
-        <h2 style={{ fontSize: '2rem', fontWeight: 800, letterSpacing: '-0.03em', color: 'var(--on-surface)' }}>
-          Choose Difficulty
-        </h2>
-        <p className="type-body-md" style={{ marginTop: 6, color: 'var(--on-surface-variant)' }}>
-          {multiplayerType === null ? 'Affects word rarity and letter combos.' : 'Affects word rarity and letter combos for all players.'}
-        </p>
-      </div>
+      <h2 style={{ fontSize: '2rem', fontWeight: 800, letterSpacing: '-0.03em', color: 'var(--on-surface)' }}>
+        Choose Difficulty
+      </h2>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-        {DIFFICULTIES.map(({ key, emoji, label, desc }) => (
+      <div style={{ display: 'flex', gap: 12, width: '100%' }}>
+        {DIFFICULTIES.map(({ key, label }) => (
           <button key={key} onClick={() => choose(key)}
-            className="card"
+            className="card type-title-md"
             style={{
-              width: '100%', padding: '20px 24px',
-              display: 'flex', alignItems: 'center', gap: 20,
-              border: 'none', cursor: 'pointer', textAlign: 'left',
+              flex: 1, height: 56, padding: '0 12px',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              border: 'none', cursor: 'pointer', textAlign: 'center',
+              color: 'var(--on-surface)',
               transition: `transform var(--dur-medium1) var(--ease-standard), box-shadow var(--dur-medium1) var(--ease-standard)`,
             }}
             onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.02)'; e.currentTarget.style.boxShadow = 'var(--shadow-2)' }}
             onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = 'none' }}
             onMouseDown={e  => { e.currentTarget.style.transform = 'scale(0.98)' }}
             onMouseUp={e    => { e.currentTarget.style.transform = 'scale(1.02)' }}>
-            <span style={{ fontSize: 36 }}>{emoji}</span>
-            <div>
-              <p style={{ fontWeight: 800, fontSize: '1.1rem', color: 'var(--on-surface)' }}>{label}</p>
-              <p className="type-body-md" style={{ marginTop: 2, color: 'var(--on-surface-variant)' }}>{desc}</p>
-            </div>
+            {label}
           </button>
         ))}
       </div>

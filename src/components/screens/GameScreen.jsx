@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { Lightbulb, Loader2, Flag, SkipForward } from 'lucide-react'
 import { useTimer } from '../../hooks/useTimer'
 import { useGameStore } from '../../store/useGameStore'
-import { fetchDefinition, DIFFICULTY_LABELS } from '../../game/engine'
+import { fetchDefinition } from '../../game/engine'
 import Timer from '../Timer'
 import WordInput from '../WordInput'
 import PowerUpBar from '../PowerUpBar'
@@ -27,7 +27,6 @@ export default function GameScreen() {
   const wordsCompleted     = useGameStore(s => s.wordsCompleted)
   const surrender          = useGameStore(s => s.surrender)
   const passRound          = useGameStore(s => s.passRound)
-  const difficulty         = useGameStore(s => s.difficulty)
   const currentPlayer      = players[currentPlayerIndex]
 
   const isSolo = multiplayerType === null
@@ -83,14 +82,13 @@ export default function GameScreen() {
           <div style={{ display: 'inline-flex', alignItems: 'baseline', gap: '10px' }}>
             <span className="label" style={{ fontSize: '0.875rem' }}>Score:</span>
             <span style={{
-              fontSize: '3.25rem', fontWeight: 900,
+              fontSize: '2.25rem', fontWeight: 900,
               letterSpacing: '-0.03em', lineHeight: 1,
               color: 'var(--primary)',
             }}>
               {wordsCompleted}
             </span>
           </div>
-          <span className="label">{DIFFICULTY_LABELS[difficulty] ?? difficulty}</span>
         </div>
       ) : (
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>

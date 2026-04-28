@@ -8,12 +8,16 @@ export default function WordInput() {
   const submitWord     = useGameStore(s => s.submitWord)
   const timeRemaining  = useGameStore(s => s.timeRemaining)
   const gameMode       = useGameStore(s => s.gameMode)
-  const timeBank       = useGameStore(s => s.timeBank)
   const timeWarpActive = useGameStore(s => s.timeWarpActive)
+  const multiplayerType = useGameStore(s => s.multiplayerType)
+  const prompt         = useGameStore(s => s.prompt)
 
-  const isDisabled = gameMode === 'classic'
-    ? (timeRemaining <= 0 && !timeWarpActive)
-    : timeBank <= 0
+  // Solo Classic has no timer; mp Classic + BTC do.
+  const isDisabled = gameMode === 'beatTheClock'
+    ? timeRemaining <= 0
+    : multiplayerType !== null
+      ? (timeRemaining <= 0 && !timeWarpActive)
+      : false
 
   function handleSubmit(e) {
     e.preventDefault()
@@ -22,19 +26,26 @@ export default function WordInput() {
     if (result.valid) {
       const msg = result.beatMaster
         ? `+${result.score} pts · 🏆 Beat the Master (+${result.bonus} bonus)`
-        : `+${result.score} pts`
+        : result.score !== undefined ? `+${result.score} pts` : 'Nice!'
       setFeedback({ ok: true, msg })
+      setValue('')
+      setTimeout(() => setFeedback(null), 2500)
     } else {
-      setFeedback({ ok: false, msg: result.reason })
+      // Consolidated reminder of all the rules
+      const start = prompt?.startLetter?.toUpperCase() ?? '?'
+      const end   = prompt?.endLetter?.toUpperCase() ?? '?'
+      setFeedback({
+        ok: false,
+        msg: `Try again — must be a real English word, at least 4 letters, starting with ${start} and ending with ${end}.`,
+      })
+      // Clear input so the player can retry from scratch.
+      setValue('')
     }
-    setValue('')
-    setTimeout(() => setFeedback(null), 2500)
   }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', width: '100%' }}>
       <form onSubmit={handleSubmit} style={{ display: 'flex', gap: '10px' }}>
-        {/* M3 outlined text field — Airbnb: input is sacred */}
         <input
           type="text"
           value={value}

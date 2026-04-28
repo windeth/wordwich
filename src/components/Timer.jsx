@@ -3,17 +3,17 @@ import { useGameStore } from '../store/useGameStore'
 export default function Timer() {
   const gameMode          = useGameStore(s => s.gameMode)
   const timeRemaining     = useGameStore(s => s.timeRemaining)
-  const timeBank          = useGameStore(s => s.timeBank)
   const timeWarpActive    = useGameStore(s => s.timeWarpActive)
   const timeWarpRemaining = useGameStore(s => s.timeWarpRemaining)
 
-  const seconds   = gameMode === 'classic' ? timeRemaining : timeBank
-  const isWarning = gameMode === 'classic' && timeRemaining <= 10 && !timeWarpActive
-  const mins      = Math.floor(seconds / 60)
-  const secs      = seconds % 60
-  const display   = gameMode === 'beatTheClock'
+  const warningOn = gameMode === 'beatTheClock'
+    ? timeRemaining <= 30 && !timeWarpActive
+    : (gameMode === 'classic' && timeRemaining <= 10 && !timeWarpActive)
+  const mins = Math.floor(timeRemaining / 60)
+  const secs = timeRemaining % 60
+  const display = gameMode === 'beatTheClock'
     ? `${mins}:${String(secs).padStart(2, '0')}`
-    : String(seconds)
+    : String(timeRemaining)
 
   if (timeWarpActive) return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}>
@@ -33,18 +33,18 @@ export default function Timer() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
       <span
-        className={isWarning ? 'animate-pulsate' : ''}
+        className={warningOn ? 'animate-pulsate' : ''}
         style={{
           fontSize: '5rem', fontWeight: 900,
           letterSpacing: '-0.04em', lineHeight: 1,
           tabularNums: 'tabular-nums',
-          color: isWarning ? 'var(--error)' : 'var(--on-surface)',
+          color: warningOn ? 'var(--error)' : 'var(--on-surface)',
           transition: `color var(--dur-medium2) var(--ease-standard)`,
         }}
       >
         {display}
       </span>
-      <span className="label">{gameMode === 'beatTheClock' ? 'Time Bank' : 'Seconds Left'}</span>
+      <span className="label">{gameMode === 'beatTheClock' ? 'Time Left' : 'Seconds Left'}</span>
     </div>
   )
 }

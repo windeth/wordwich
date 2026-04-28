@@ -10,7 +10,7 @@ export default function HomeScreen() {
 
   function goSinglePlayer() {
     setMultiplayerType(null)
-    navigate('difficulty')
+    navigate('singleplayer')
   }
 
   function goMultiplayer() {
@@ -88,7 +88,7 @@ export default function HomeScreen() {
             onClick={goSinglePlayer}
             className="btn-primary"
             style={{ width: '100%', borderRadius: 'var(--shape-md)', height: 48, fontSize: '1rem', fontWeight: 700 }}>
-            Beat the Clock
+            Single Player
           </button>
 
           <button

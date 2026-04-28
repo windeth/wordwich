@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Lightbulb, Loader2 } from 'lucide-react'
+import { Lightbulb, Loader2, Flag } from 'lucide-react'
 import { useTimer } from '../../hooks/useTimer'
 import { useGameStore } from '../../store/useGameStore'
 import { fetchDefinition } from '../../game/engine'
@@ -22,15 +22,24 @@ export default function GameScreen() {
   const currentRound       = useGameStore(s => s.currentRound)
   const roundLimit         = useGameStore(s => s.roundLimit)
   const gameMode           = useGameStore(s => s.gameMode)
+  const multiplayerType    = useGameStore(s => s.multiplayerType)
+  const wordsCompleted     = useGameStore(s => s.wordsCompleted)
   const surrender          = useGameStore(s => s.surrender)
+  const passRound          = useGameStore(s => s.passRound)
   const currentPlayer      = players[currentPlayerIndex]
+
+  const isSolo = multiplayerType === null
+  const isBTC  = gameMode === 'beatTheClock'
+  const isSoloClassic = isSolo && !isBTC
 
   const [insightHint, setInsightHint] = useState(null)
   const [insightLoading, setInsightLoading] = useState(false)
 
   useEffect(() => {
     if (!insightUsed || !masterWord) {
-      setInsightHint(null); setInsightLoading(false)
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setInsightHint(null)
+      setInsightLoading(false)
       return
     }
     let cancelled = false
@@ -43,6 +52,12 @@ export default function GameScreen() {
     return () => { cancelled = true }
   }, [insightUsed, masterWord])
 
+  const headerLabel = isBTC
+    ? 'Beat the Clock'
+    : roundLimit
+      ? `Round ${currentRound} of ${roundLimit} · Classic`
+      : `Round ${currentRound} · Classic`
+
   return (
     <div className="animate-enter" style={{
       display: 'flex', flexDirection: 'column',
@@ -50,12 +65,9 @@ export default function GameScreen() {
       gap: '20px', maxWidth: '480px', margin: '0 auto', width: '100%',
     }}>
 
-      {/* ── Header — Apple: minimal chrome */}
+      {/* ── Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <span className="label">
-          Round {currentRound}{roundLimit ? ` of ${roundLimit}` : ''} · {gameMode === 'beatTheClock' ? 'Beat the Clock' : 'Classic'}
-        </span>
-        {/* Airbnb: progressive disclosure — surrender is barely visible */}
+        <span className="label">{headerLabel}</span>
         <button onClick={() => setShowSurrender(true)}
           className="type-label-md"
           style={{ background: 'none', border: 'none', cursor: 'pointer',
@@ -67,7 +79,7 @@ export default function GameScreen() {
         </button>
       </div>
 
-      {/* ── Prompt card — M3 Level 2 elevation, Apple generous padding */}
+      {/* ── Prompt card */}
       <div className="card-elevated" style={{ padding: '40px 32px', textAlign: 'center' }}>
         <span className="label" style={{ display: 'block', marginBottom: '24px' }}>Your word</span>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '24px' }}>
@@ -81,7 +93,7 @@ export default function GameScreen() {
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 background: 'var(--primary-container)',
                 color: 'var(--on-primary-container)',
-                borderRadius: 'var(--shape-lg)',  /* 16dp */
+                borderRadius: 'var(--shape-lg)',
                 fontSize: '3.5rem', fontWeight: 900,
                 textTransform: 'uppercase', lineHeight: 1,
                 letterSpacing: '-0.02em',
@@ -122,7 +134,7 @@ export default function GameScreen() {
         </div>
       )}
 
-      {/* ── Insight hint — definition of the Master Word, never the word itself */}
+      {/* ── Insight hint */}
       {insightUsed && masterWord && (
         <div className="animate-enter" style={{
           padding: '16px 20px',
@@ -155,49 +167,87 @@ export default function GameScreen() {
         </div>
       )}
 
-      {/* ── Active player card */}
-      <div className="card" style={{ padding: '20px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <div>
-          <span className="label" style={{ display: 'block', marginBottom: '6px' }}>Now Playing</span>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <span className="type-title-lg" style={{ color: 'var(--on-surface)' }}>
-              {currentPlayer?.name}
-            </span>
-            {currentPlayer?.streak >= 2 && (
-              <span style={{
-                fontSize: '12px', fontWeight: 700,
-                padding: '3px 8px', borderRadius: 'var(--shape-full)',
-                background: 'var(--warning-container)', color: 'var(--warning)',
-              }}>
-                🔥 {currentPlayer.streak}
-              </span>
-            )}
-          </div>
-        </div>
-        <div style={{ textAlign: 'right' }}>
-          <span className="label" style={{ display: 'block', marginBottom: '4px' }}>Score</span>
-          <span style={{ fontSize: '2rem', fontWeight: 900, letterSpacing: '-0.03em',
-            color: 'var(--primary)', lineHeight: 1 }}>
-            {currentPlayer?.score}
+      {/* ── Words counter (BTC) */}
+      {isBTC && (
+        <div className="card" style={{ padding: '16px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <span className="label">Words completed</span>
+          <span style={{ fontSize: '1.75rem', fontWeight: 900, color: 'var(--primary)', letterSpacing: '-0.02em', lineHeight: 1 }}>
+            {wordsCompleted}
           </span>
         </div>
-      </div>
+      )}
 
-      {/* ── Timer */}
-      <div style={{ display: 'flex', justifyContent: 'center', padding: '8px 0' }}>
-        <Timer />
-      </div>
+      {/* ── Active player card (multiplayer only) */}
+      {!isSolo && (
+        <div className="card" style={{ padding: '20px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div>
+            <span className="label" style={{ display: 'block', marginBottom: '6px' }}>Now Playing</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <span className="type-title-lg" style={{ color: 'var(--on-surface)' }}>
+                {currentPlayer?.name}
+              </span>
+              {currentPlayer?.streak >= 2 && (
+                <span style={{
+                  fontSize: '12px', fontWeight: 700,
+                  padding: '3px 8px', borderRadius: 'var(--shape-full)',
+                  background: 'var(--warning-container)', color: 'var(--warning)',
+                }}>
+                  🔥 {currentPlayer.streak}
+                </span>
+              )}
+            </div>
+          </div>
+          <div style={{ textAlign: 'right' }}>
+            <span className="label" style={{ display: 'block', marginBottom: '4px' }}>Score</span>
+            <span style={{ fontSize: '2rem', fontWeight: 900, letterSpacing: '-0.03em',
+              color: 'var(--primary)', lineHeight: 1 }}>
+              {currentPlayer?.score}
+            </span>
+          </div>
+        </div>
+      )}
+
+      {/* ── Solo Classic score chip (compact) */}
+      {isSoloClassic && (
+        <div className="card" style={{ padding: '14px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <span className="label">Score</span>
+          <span style={{ fontSize: '1.5rem', fontWeight: 900, color: 'var(--primary)', letterSpacing: '-0.02em', lineHeight: 1 }}>
+            {currentPlayer?.score ?? 0}
+          </span>
+        </div>
+      )}
+
+      {/* ── Timer (BTC + multiplayer Classic) */}
+      {(isBTC || !isSolo) && (
+        <div style={{ display: 'flex', justifyContent: 'center', padding: '8px 0' }}>
+          <Timer />
+        </div>
+      )}
 
       {/* ── Word input */}
       <WordInput />
 
-      {/* ── Power-ups */}
-      <PowerUpBar />
+      {/* ── Pass (solo Classic) */}
+      {isSoloClassic && (
+        <button onClick={passRound}
+          className="btn-outlined"
+          style={{
+            width: '100%', borderRadius: 'var(--shape-md)', height: 44,
+            display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+            fontSize: '0.9rem', fontWeight: 700, color: 'var(--on-surface-variant)',
+          }}>
+          <Flag size={14} />
+          Pass this round
+        </button>
+      )}
 
-      {/* ── Player list */}
-      <PlayerList />
+      {/* ── Power-ups (hide in BTC) */}
+      {!isBTC && <PowerUpBar />}
 
-      {/* ── Surrender modal — M3 dialog: bottom sheet on mobile */}
+      {/* ── Player list (multiplayer only) */}
+      {!isSolo && <PlayerList />}
+
+      {/* ── Surrender modal */}
       {showSurrender && (
         <div style={{
           position: 'fixed', inset: 0, zIndex: 50,
@@ -212,10 +262,14 @@ export default function GameScreen() {
           }}>
             <div>
               <h3 className="type-title-lg" style={{ color: 'var(--on-surface)', marginBottom: '8px' }}>
-                Quit to main menu?
+                {isSolo ? 'Surrender and end the game?' : 'Quit to main menu?'}
               </h3>
               <p className="type-body-md" style={{ color: 'var(--on-surface-variant)' }}>
-                All progress will be lost.
+                {isSolo
+                  ? (isBTC
+                      ? 'Your run will end and your score will be saved.'
+                      : 'You’ll see your final cumulative score.')
+                  : 'All progress will be lost.'}
               </p>
             </div>
             <div style={{ display: 'flex', gap: '12px' }}>
@@ -227,7 +281,7 @@ export default function GameScreen() {
               <button onClick={surrender}
                 className="btn-danger"
                 style={{ flex: 1, borderRadius: 'var(--shape-sm)' }}>
-                Quit
+                {isSolo ? 'End Game' : 'Quit'}
               </button>
             </div>
           </div>

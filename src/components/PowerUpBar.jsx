@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Lightbulb, Link2, Clock } from 'lucide-react'
 import { useGameStore } from '../store/useGameStore'
 
-const POWERUPS = [
+const ALL_POWERUPS = [
   { key: 'insight',  label: 'Insight',   cost: 5, icon: Lightbulb, desc: 'Hint: see the Master Word’s definition' },
   { key: 'bridge',   label: 'Bridge',    cost: 2, icon: Link2,     desc: 'Middle 2 letters (not scored)' },
   { key: 'timeWarp', label: 'Time Warp', cost: 5, icon: Clock,     desc: 'Freeze timer for 30s' },
@@ -11,17 +11,23 @@ const POWERUPS = [
 export default function PowerUpBar() {
   const [confirming, setConfirming] = useState(null)
   const [error, setError]           = useState(null)
-  const usePowerUp         = useGameStore(s => s.usePowerUp)
+  const applyPowerUp       = useGameStore(s => s.usePowerUp)
   const players            = useGameStore(s => s.players)
   const currentPlayerIndex = useGameStore(s => s.currentPlayerIndex)
   const insightUsed        = useGameStore(s => s.insightUsed)
   const bridgeUsed         = useGameStore(s => s.bridgeUsed)
   const timeWarpActive     = useGameStore(s => s.timeWarpActive)
+  const multiplayerType    = useGameStore(s => s.multiplayerType)
+  const gameMode           = useGameStore(s => s.gameMode)
   const currentScore       = players[currentPlayerIndex]?.score ?? 0
   const isUsed             = { insight: insightUsed, bridge: bridgeUsed, timeWarp: timeWarpActive }
 
+  // Solo Classic has no timer — Time Warp would have nothing to freeze.
+  const isSoloClassic = multiplayerType === null && gameMode === 'classic'
+  const POWERUPS = isSoloClassic ? ALL_POWERUPS.filter(p => p.key !== 'timeWarp') : ALL_POWERUPS
+
   function confirm(key) {
-    const result = usePowerUp(key)
+    const result = applyPowerUp(key)
     if (!result.ok) { setError(result.reason); setTimeout(() => setError(null), 2000) }
     setConfirming(null)
   }

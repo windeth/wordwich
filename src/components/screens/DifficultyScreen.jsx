@@ -13,13 +13,19 @@ export default function DifficultyScreen() {
   const startGame        = useGameStore(s => s.startGame)
   const multiplayerType  = useGameStore(s => s.multiplayerType)
 
-  const backScreen = multiplayerType ? 'multiplayer' : 'home'
+  const gameMode = useGameStore(s => s.gameMode)
+  const backScreen = multiplayerType
+    ? 'multiplayer'
+    : (gameMode === 'beatTheClock' ? 'singleplayer' : 'soloclassicsetup')
 
   function choose(key) {
     setDifficulty(key)
     if (multiplayerType === null) {
-      // Single player — start immediately with anonymous player
-      setPlayers([{ id: 0, name: 'Player 1', score: 0, streak: 0, longestWord: '', roundsWon: 0 }])
+      // Single player — Player 1 already created (Solo Classic setup) OR ensure created (BTC)
+      const existing = useGameStore.getState().players
+      if (!existing.length) {
+        setPlayers([{ id: 0, name: 'Player 1', score: 0, streak: 0, longestWord: '', roundsWon: 0 }])
+      }
       startGame()
     } else {
       navigate('playersetup')

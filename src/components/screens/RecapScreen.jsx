@@ -5,13 +5,14 @@ import { fetchDefinition } from '../../game/engine'
 import Leaderboard from '../Leaderboard'
 
 export default function RecapScreen() {
-  const masterWord   = useGameStore(s => s.masterWord)
-  const players      = useGameStore(s => s.players)
-  const nextRound    = useGameStore(s => s.nextRound)
-  const endGame      = useGameStore(s => s.endGame)
-  const isLastRound  = useGameStore(s => s.isLastRound)
-  const roundHistory = useGameStore(s => s.roundHistory)
-  const gameMode     = useGameStore(s => s.gameMode)
+  const masterWord    = useGameStore(s => s.masterWord)
+  const players       = useGameStore(s => s.players)
+  const nextRound     = useGameStore(s => s.nextRound)
+  const endGame       = useGameStore(s => s.endGame)
+  const isLastRound   = useGameStore(s => s.isLastRound)
+  const roundHistory  = useGameStore(s => s.roundHistory)
+  const multiplayerType = useGameStore(s => s.multiplayerType)
+  const isSolo = multiplayerType === null
 
   const [revealed, setRevealed]     = useState(0)
   const [definition, setDefinition] = useState(null)
@@ -20,6 +21,7 @@ export default function RecapScreen() {
 
   const word = masterWord || '—'
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { setRevealed(0); setDefinition(null); setDefShown(false) }, [masterWord])
   useEffect(() => {
     if (revealed >= word.length) return
@@ -41,7 +43,7 @@ export default function RecapScreen() {
       })[0]
     : null
 
-  const isEnd = isLastRound || gameMode === 'beatTheClock'
+  const isEnd = isLastRound
 
   return (
     <div className="animate-enter" style={{
@@ -98,7 +100,7 @@ export default function RecapScreen() {
               borderRadius: 'var(--shape-full)', fontSize: '13px',
             }}>
             <BookOpen size={13} />
-            Show Definition
+            View Definition
           </button>
         )}
 
@@ -120,8 +122,8 @@ export default function RecapScreen() {
         )}
       </div>
 
-      {/* ── Round winner */}
-      {roundWinner && (
+      {/* ── Round winner (multiplayer only) */}
+      {!isSolo && roundWinner && (
         <div className="card" style={{
           width: '100%', padding: '20px 24px',
           display: 'flex', alignItems: 'center', gap: '16px',
@@ -134,10 +136,12 @@ export default function RecapScreen() {
         </div>
       )}
 
-      {/* ── Leaderboard */}
-      <div style={{ width: '100%' }}>
-        <Leaderboard players={players} />
-      </div>
+      {/* ── Leaderboard (multiplayer only) */}
+      {!isSolo && (
+        <div style={{ width: '100%' }}>
+          <Leaderboard players={players} />
+        </div>
+      )}
 
       {/* ── Round submissions */}
       {roundHistory.length > 0 && (
@@ -152,24 +156,40 @@ export default function RecapScreen() {
               borderBottom: i < roundHistory.length - 1 ? '1px solid var(--outline-variant)' : 'none',
             }}>
               <div>
-                <p className="label" style={{ marginBottom: '3px' }}>{entry.playerName}</p>
+                {!isSolo && (
+                  <p className="label" style={{ marginBottom: '3px' }}>{entry.playerName}</p>
+                )}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span className="type-label-lg" style={{ textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--on-surface)' }}>
-                    {entry.word}
-                  </span>
-                  {entry.beatMaster && (
-                    <span style={{
-                      fontSize: '11px', fontWeight: 700,
-                      padding: '2px 8px', borderRadius: 'var(--shape-full)',
-                      background: 'var(--warning-container)', color: 'var(--warning)',
+                  {entry.passed ? (
+                    <span className="type-label-lg" style={{
+                      textTransform: 'uppercase', letterSpacing: '0.08em',
+                      color: 'var(--on-surface-variant)', fontStyle: 'italic',
                     }}>
-                      🏆 Beat Master
+                      — passed
                     </span>
+                  ) : (
+                    <>
+                      <span className="type-label-lg" style={{ textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--on-surface)' }}>
+                        {entry.word}
+                      </span>
+                      {entry.beatMaster && (
+                        <span style={{
+                          fontSize: '11px', fontWeight: 700,
+                          padding: '2px 8px', borderRadius: 'var(--shape-full)',
+                          background: 'var(--warning-container)', color: 'var(--warning)',
+                        }}>
+                          🏆 Beat Master
+                        </span>
+                      )}
+                    </>
                   )}
                 </div>
               </div>
-              <span className="type-title-md" style={{ color: 'var(--success)', fontWeight: 800 }}>
-                +{entry.score}
+              <span className="type-title-md" style={{
+                color: entry.score > 0 ? 'var(--success)' : 'var(--on-surface-variant)',
+                fontWeight: 800,
+              }}>
+                {entry.score > 0 ? `+${entry.score}` : '—'}
               </span>
             </div>
           ))}

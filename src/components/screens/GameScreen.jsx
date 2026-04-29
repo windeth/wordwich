@@ -323,6 +323,9 @@ export default function GameScreen() {
 
           {/* Player list (multiplayer only) */}
           {!isSolo && <PlayerList />}
+
+          {/* Power-ups (scrollable so they're reachable when keyboard is open) */}
+          {!isBTC && <PowerUpBar />}
         </div>
 
         {/* ── BOTTOM: input + actions — always visible above keyboard */}
@@ -332,8 +335,6 @@ export default function GameScreen() {
           display: 'flex', flexDirection: 'column', gap: '10px',
         }}>
           <WordInput />
-
-          {!isBTC && <PowerUpBar />}
 
           {isSoloClassic && (
             <div style={{ display: 'flex', gap: 10, width: '100%' }}>

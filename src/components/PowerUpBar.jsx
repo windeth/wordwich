@@ -33,24 +33,25 @@ export default function PowerUpBar() {
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', width: '100%' }}>
-      <span className="label">Power-Ups</span>
-      <div style={{ display: 'flex', gap: '10px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%' }}>
+      <div style={{ display: 'flex', gap: '8px' }}>
         {POWERUPS.map(({ key, label, cost, icon: Icon }) => {
           const used     = isUsed[key]
           const canAfford= currentScore >= cost
           const disabled = used || !canAfford
           return (
-            /* M3 tonal chip pattern */
+            /* M3 compact pill — single-row, ~44px tall, always visible */
             <button key={key}
               onClick={() => !disabled && setConfirming(key)}
               disabled={disabled}
               style={{
-                flex: 1, display: 'flex', flexDirection: 'column',
-                alignItems: 'center', gap: '6px', padding: '14px 8px',
+                flex: 1, height: 44,
+                display: 'inline-flex', flexDirection: 'row',
+                alignItems: 'center', justifyContent: 'center', gap: '6px',
+                padding: '0 10px',
                 background: disabled ? 'var(--surface-container)' : 'var(--surface-container-high)',
                 border: `1px solid ${disabled ? 'var(--outline-variant)' : 'var(--primary)'}`,
-                borderRadius: 'var(--shape-md)',
+                borderRadius: 'var(--shape-full)',
                 opacity: disabled ? 0.38 : 1,
                 cursor: disabled ? 'not-allowed' : 'pointer',
                 transition: `transform var(--dur-medium1) var(--ease-standard), opacity var(--dur-medium1) var(--ease-standard)`,
@@ -59,9 +60,18 @@ export default function PowerUpBar() {
               onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)' }}
               onMouseDown={e  => { if (!disabled) e.currentTarget.style.transform = 'scale(0.98)' }}
               onMouseUp={e    => { if (!disabled) e.currentTarget.style.transform = 'scale(1.02)' }}>
-              <Icon size={16} style={{ color: disabled ? 'var(--on-surface-variant)' : 'var(--primary)' }} />
-              <span className="type-label-md" style={{ color: 'var(--on-surface)' }}>{label}</span>
-              <span className="type-label-md" style={{ color: 'var(--primary)', fontWeight: 700 }}>{cost} pts</span>
+              <Icon size={16} style={{ color: disabled ? 'var(--on-surface-variant)' : 'var(--primary)', flexShrink: 0 }} />
+              <span className="type-label-md" style={{ color: 'var(--on-surface)', whiteSpace: 'nowrap' }}>{label}</span>
+              <span style={{
+                fontSize: '11px', fontWeight: 700,
+                color: 'var(--primary)',
+                padding: '2px 6px',
+                borderRadius: 'var(--shape-full)',
+                background: 'var(--primary-container)',
+                lineHeight: 1,
+              }}>
+                {cost}
+              </span>
             </button>
           )
         })}

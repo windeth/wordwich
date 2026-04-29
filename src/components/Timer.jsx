@@ -1,3 +1,4 @@
+import { Clock, Pause } from 'lucide-react'
 import { useGameStore } from '../store/useGameStore'
 
 export default function Timer() {
@@ -15,36 +16,52 @@ export default function Timer() {
     ? `${mins}:${String(secs).padStart(2, '0')}`
     : String(timeRemaining)
 
-  if (timeWarpActive) return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}>
+  if (timeWarpActive) {
+    return (
       <div style={{
-        padding: '10px 20px', borderRadius: 'var(--shape-full)',
+        height: 48,
+        display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+        padding: '0 18px',
+        borderRadius: 'var(--shape-full)',
         background: 'var(--primary-container)',
         border: '1px solid var(--primary)',
         color: 'var(--on-primary-container)',
-        fontSize: '0.875rem', fontWeight: 700,
       }}>
-        ⏸ Frozen — {timeWarpRemaining}s
+        <Pause size={16} />
+        <span style={{
+          fontSize: '1.125rem', fontWeight: 800,
+          letterSpacing: '-0.01em',
+          fontVariantNumeric: 'tabular-nums',
+        }}>
+          Frozen · {timeWarpRemaining}s
+        </span>
       </div>
-      <span className="label">Time Warp active</span>
-    </div>
-  )
+    )
+  }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
-      <span
-        className={warningOn ? 'animate-pulsate' : ''}
-        style={{
-          fontSize: '5rem', fontWeight: 900,
-          letterSpacing: '-0.04em', lineHeight: 1,
-          tabularNums: 'tabular-nums',
-          color: warningOn ? 'var(--error)' : 'var(--on-surface)',
-          transition: `color var(--dur-medium2) var(--ease-standard)`,
-        }}
-      >
+    <div
+      className={warningOn ? 'animate-pulsate' : ''}
+      style={{
+        height: 48,
+        display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '10px',
+        padding: '0 20px',
+        borderRadius: 'var(--shape-full)',
+        background: warningOn ? 'var(--error-container)' : 'var(--surface-container-high)',
+        border: `1px solid ${warningOn ? 'var(--error)' : 'var(--outline-variant)'}`,
+        transition: `background var(--dur-medium2) var(--ease-standard), border-color var(--dur-medium2) var(--ease-standard)`,
+      }}
+    >
+      <Clock size={18} style={{ color: warningOn ? 'var(--error)' : 'var(--on-surface-variant)' }} />
+      <span style={{
+        fontSize: '1.5rem', fontWeight: 900,
+        letterSpacing: '-0.03em',
+        fontVariantNumeric: 'tabular-nums',
+        color: warningOn ? 'var(--error)' : 'var(--on-surface)',
+        transition: `color var(--dur-medium2) var(--ease-standard)`,
+      }}>
         {display}
       </span>
-      <span className="label">{gameMode === 'beatTheClock' ? 'Time Left' : 'Seconds Left'}</span>
     </div>
   )
 }

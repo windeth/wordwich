@@ -80,6 +80,8 @@ export default function GameScreen() {
       ? `Round ${currentRound} of ${roundLimit} · Classic`
       : `Round ${currentRound} · Classic`
 
+  const showTimer = isBTC || !isSolo
+
   return (
     /* Fixed container tracks the visual viewport so the keyboard never covers content */
     <div style={{
@@ -103,76 +105,50 @@ export default function GameScreen() {
           padding: '24px 24px 0',
           display: 'flex', flexDirection: 'column', gap: '12px',
         }}>
-          {/* Header */}
-          {isBTC ? (
-            <div style={{
-              display: 'flex', flexDirection: 'column', alignItems: 'center',
-              gap: '8px', padding: '8px 0 4px',
-            }}>
-              <h1 style={{
-                fontSize: '2rem', fontWeight: 900,
-                letterSpacing: '0.04em', lineHeight: 1,
-                color: 'var(--on-surface)',
-              }}>
-                BEAT THE CLOCK
-              </h1>
-              <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'baseline', gap: '10px' }}>
-                <span className="label" style={{ fontSize: '0.875rem' }}>Score:</span>
+          {/* Header — solo style for all modes (label left, score right) */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+            <span className="label" style={{ flex: '0 1 auto', minWidth: 0 }}>{headerLabel}</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexShrink: 0 }}>
+              {/* Score (top-right) */}
+              <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'baseline', gap: 6 }}>
+                <span className="label" style={{ fontSize: '0.7rem' }}>Score</span>
                 <span
                   key={scoreAnimKey}
                   className={scoreAnimKey > 0 ? 'animate-score-pop' : ''}
-                  style={{ fontSize: '2.25rem', fontWeight: 900, letterSpacing: '-0.03em', lineHeight: 1, color: 'var(--primary)' }}>
-                  {wordsCompleted}
+                  style={{
+                    fontSize: '1.375rem', fontWeight: 900,
+                    color: 'var(--primary)', letterSpacing: '-0.02em', lineHeight: 1,
+                  }}>
+                  {displayScore}
                 </span>
                 {scoreDelta && (
                   <span className="animate-float-up" style={{
-                    position: 'absolute', top: '-4px', right: '-28px',
-                    fontSize: '0.875rem', fontWeight: 800,
+                    position: 'absolute', top: '-4px', right: '-22px',
+                    fontSize: '0.75rem', fontWeight: 800,
                     color: 'var(--success)', pointerEvents: 'none',
                   }}>
                     {scoreDelta}
                   </span>
                 )}
               </div>
+              {!isSolo && (
+                <button onClick={() => setShowSurrender(true)}
+                  className="type-label-md"
+                  style={{ background: 'none', border: 'none', cursor: 'pointer',
+                    color: 'var(--on-surface-variant)', padding: '4px',
+                    transition: `color var(--dur-medium1) var(--ease-standard)` }}
+                  onMouseEnter={e => e.currentTarget.style.color = 'var(--error)'}
+                  onMouseLeave={e => e.currentTarget.style.color = 'var(--on-surface-variant)'}>
+                  Surrender
+                </button>
+              )}
             </div>
-          ) : (
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
-              <span className="label" style={{ flex: '0 1 auto', minWidth: 0 }}>{headerLabel}</span>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexShrink: 0 }}>
-                {/* Score (top-right) */}
-                <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'baseline', gap: 6 }}>
-                  <span className="label" style={{ fontSize: '0.7rem' }}>Score</span>
-                  <span
-                    key={scoreAnimKey}
-                    className={scoreAnimKey > 0 ? 'animate-score-pop' : ''}
-                    style={{
-                      fontSize: '1.375rem', fontWeight: 900,
-                      color: 'var(--primary)', letterSpacing: '-0.02em', lineHeight: 1,
-                    }}>
-                    {currentPlayer?.score ?? 0}
-                  </span>
-                  {scoreDelta && (
-                    <span className="animate-float-up" style={{
-                      position: 'absolute', top: '-4px', right: '-22px',
-                      fontSize: '0.75rem', fontWeight: 800,
-                      color: 'var(--success)', pointerEvents: 'none',
-                    }}>
-                      {scoreDelta}
-                    </span>
-                  )}
-                </div>
-                {!isSolo && (
-                  <button onClick={() => setShowSurrender(true)}
-                    className="type-label-md"
-                    style={{ background: 'none', border: 'none', cursor: 'pointer',
-                      color: 'var(--on-surface-variant)', padding: '4px',
-                      transition: `color var(--dur-medium1) var(--ease-standard)` }}
-                    onMouseEnter={e => e.currentTarget.style.color = 'var(--error)'}
-                    onMouseLeave={e => e.currentTarget.style.color = 'var(--on-surface-variant)'}>
-                    Surrender
-                  </button>
-                )}
-              </div>
+          </div>
+
+          {/* Timer chip — pinned in TOP zone so it's always visible */}
+          {showTimer && (
+            <div style={{ display: 'flex', justifyContent: 'center' }}>
+              <Timer />
             </div>
           )}
 
@@ -292,13 +268,6 @@ export default function GameScreen() {
             </div>
           )}
 
-          {/* Timer (BTC + multiplayer Classic) */}
-          {(isBTC || !isSolo) && (
-            <div style={{ display: 'flex', justifyContent: 'center', padding: '8px 0' }}>
-              <Timer />
-            </div>
-          )}
-
           {/* Player list (multiplayer only) */}
           {!isSolo && <PlayerList />}
         </div>
@@ -340,16 +309,18 @@ export default function GameScreen() {
           )}
 
           {isBTC && (
-            <button onClick={() => setShowSurrender(true)}
-              className="btn-outlined"
-              style={{
-                width: '100%', borderRadius: 'var(--shape-md)', height: 44,
-                display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                fontSize: '0.9rem', fontWeight: 700, color: 'var(--on-surface-variant)',
-              }}>
-              <Flag size={14} />
-              Surrender
-            </button>
+            <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
+              <button onClick={() => setShowSurrender(true)}
+                className="btn-outlined"
+                style={{
+                  width: '50%', borderRadius: 'var(--shape-md)', height: 44,
+                  display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                  fontSize: '0.9rem', fontWeight: 700, color: 'var(--on-surface-variant)',
+                }}>
+                <Flag size={14} />
+                Surrender
+              </button>
+            </div>
           )}
         </div>
       </div>

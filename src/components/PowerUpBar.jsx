@@ -34,6 +34,15 @@ export default function PowerUpBar() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%' }}>
+      {error && (
+        <div className="animate-enter" style={{
+          padding: '10px 16px', borderRadius: 'var(--shape-sm)', textAlign: 'center',
+          fontSize: '12px', fontWeight: 600,
+          color: 'var(--error)', background: 'var(--error-container)',
+        }}>
+          {error}
+        </div>
+      )}
       <div style={{ display: 'flex', gap: '8px' }}>
         {POWERUPS.map(({ key, label, cost, icon: Icon }) => {
           const used     = isUsed[key]
@@ -76,16 +85,6 @@ export default function PowerUpBar() {
           )
         })}
       </div>
-
-      {error && (
-        <div className="animate-enter" style={{
-          padding: '10px 16px', borderRadius: 'var(--shape-sm)', textAlign: 'center',
-          fontSize: '12px', fontWeight: 600,
-          color: 'var(--error)', background: 'var(--error-container)',
-        }}>
-          {error}
-        </div>
-      )}
 
       {/* M3 dialog — bottom sheet */}
       {confirming && (() => {

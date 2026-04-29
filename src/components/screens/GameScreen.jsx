@@ -136,19 +136,43 @@ export default function GameScreen() {
               </div>
             </div>
           ) : (
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <span className="label">{headerLabel}</span>
-              {!isSolo && (
-                <button onClick={() => setShowSurrender(true)}
-                  className="type-label-md"
-                  style={{ background: 'none', border: 'none', cursor: 'pointer',
-                    color: 'var(--on-surface-variant)', padding: '8px',
-                    transition: `color var(--dur-medium1) var(--ease-standard)` }}
-                  onMouseEnter={e => e.currentTarget.style.color = 'var(--error)'}
-                  onMouseLeave={e => e.currentTarget.style.color = 'var(--on-surface-variant)'}>
-                  Surrender
-                </button>
-              )}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+              <span className="label" style={{ flex: '0 1 auto', minWidth: 0 }}>{headerLabel}</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexShrink: 0 }}>
+                {/* Score (top-right) */}
+                <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'baseline', gap: 6 }}>
+                  <span className="label" style={{ fontSize: '0.7rem' }}>Score</span>
+                  <span
+                    key={scoreAnimKey}
+                    className={scoreAnimKey > 0 ? 'animate-score-pop' : ''}
+                    style={{
+                      fontSize: '1.375rem', fontWeight: 900,
+                      color: 'var(--primary)', letterSpacing: '-0.02em', lineHeight: 1,
+                    }}>
+                    {currentPlayer?.score ?? 0}
+                  </span>
+                  {scoreDelta && (
+                    <span className="animate-float-up" style={{
+                      position: 'absolute', top: '-4px', right: '-22px',
+                      fontSize: '0.75rem', fontWeight: 800,
+                      color: 'var(--success)', pointerEvents: 'none',
+                    }}>
+                      {scoreDelta}
+                    </span>
+                  )}
+                </div>
+                {!isSolo && (
+                  <button onClick={() => setShowSurrender(true)}
+                    className="type-label-md"
+                    style={{ background: 'none', border: 'none', cursor: 'pointer',
+                      color: 'var(--on-surface-variant)', padding: '4px',
+                      transition: `color var(--dur-medium1) var(--ease-standard)` }}
+                    onMouseEnter={e => e.currentTarget.style.color = 'var(--error)'}
+                    onMouseLeave={e => e.currentTarget.style.color = 'var(--on-surface-variant)'}>
+                    Surrender
+                  </button>
+                )}
+              </div>
             </div>
           )}
 
@@ -249,65 +273,19 @@ export default function GameScreen() {
 
           {/* Active player card (multiplayer only) */}
           {!isSolo && (
-            <div className="card" style={{ padding: '20px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <div>
-                <span className="label" style={{ display: 'block', marginBottom: '6px' }}>Now Playing</span>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <span className="type-title-lg" style={{ color: 'var(--on-surface)' }}>
-                    {currentPlayer?.name}
-                  </span>
-                  {currentPlayer?.streak >= 2 && (
-                    <span style={{
-                      fontSize: '12px', fontWeight: 700,
-                      padding: '3px 8px', borderRadius: 'var(--shape-full)',
-                      background: 'var(--warning-container)', color: 'var(--warning)',
-                    }}>
-                      🔥 {currentPlayer.streak}
-                    </span>
-                  )}
-                </div>
-              </div>
-              <div style={{ textAlign: 'right' }}>
-                <span className="label" style={{ display: 'block', marginBottom: '4px' }}>Score</span>
-                <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center' }}>
-                  <span
-                    key={scoreAnimKey}
-                    className={scoreAnimKey > 0 ? 'animate-score-pop' : ''}
-                    style={{ fontSize: '2rem', fontWeight: 900, letterSpacing: '-0.03em', color: 'var(--primary)', lineHeight: 1 }}>
-                    {currentPlayer?.score}
-                  </span>
-                  {scoreDelta && (
-                    <span className="animate-float-up" style={{
-                      position: 'absolute', top: '-4px', right: '-28px',
-                      fontSize: '0.875rem', fontWeight: 800,
-                      color: 'var(--success)', pointerEvents: 'none',
-                    }}>
-                      {scoreDelta}
-                    </span>
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Solo Classic score chip */}
-          {isSoloClassic && (
-            <div className="card" style={{ padding: '14px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <span className="label">Score</span>
-              <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center' }}>
-                <span
-                  key={scoreAnimKey}
-                  className={scoreAnimKey > 0 ? 'animate-score-pop' : ''}
-                  style={{ fontSize: '1.5rem', fontWeight: 900, color: 'var(--primary)', letterSpacing: '-0.02em', lineHeight: 1 }}>
-                  {currentPlayer?.score ?? 0}
+            <div className="card" style={{ padding: '16px 24px' }}>
+              <span className="label" style={{ display: 'block', marginBottom: '6px' }}>Now Playing</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <span className="type-title-lg" style={{ color: 'var(--on-surface)' }}>
+                  {currentPlayer?.name}
                 </span>
-                {scoreDelta && (
-                  <span className="animate-float-up" style={{
-                    position: 'absolute', top: '-4px', right: '-28px',
-                    fontSize: '0.875rem', fontWeight: 800,
-                    color: 'var(--success)', pointerEvents: 'none',
+                {currentPlayer?.streak >= 2 && (
+                  <span style={{
+                    fontSize: '12px', fontWeight: 700,
+                    padding: '3px 8px', borderRadius: 'var(--shape-full)',
+                    background: 'var(--warning-container)', color: 'var(--warning)',
                   }}>
-                    {scoreDelta}
+                    🔥 {currentPlayer.streak}
                   </span>
                 )}
               </div>

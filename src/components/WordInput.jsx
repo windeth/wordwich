@@ -43,6 +43,17 @@ export default function WordInput() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', width: '100%' }}>
+      {feedback && (
+        <div className="animate-enter" style={{
+          padding: '10px 14px', borderRadius: 'var(--shape-sm)',
+          textAlign: 'center', fontSize: '0.875rem', fontWeight: 600,
+          color:      feedback.ok ? 'var(--success)' : 'var(--error)',
+          background: feedback.ok ? 'var(--success-container)' : 'var(--error-container)',
+        }}>
+          {feedback.msg}
+        </div>
+      )}
+
       <form onSubmit={handleSubmit} style={{ display: 'flex', gap: '10px' }}>
         <input
           type="text"
@@ -60,17 +71,6 @@ export default function WordInput() {
           <ArrowRight size={20} strokeWidth={2.5} />
         </button>
       </form>
-
-      {feedback && (
-        <div className="animate-enter" style={{
-          padding: '12px 16px', borderRadius: 'var(--shape-sm)',
-          textAlign: 'center', fontSize: '0.875rem', fontWeight: 600,
-          color:      feedback.ok ? 'var(--success)' : 'var(--error)',
-          background: feedback.ok ? 'var(--success-container)' : 'var(--error-container)',
-        }}>
-          {feedback.msg}
-        </div>
-      )}
     </div>
   )
 }

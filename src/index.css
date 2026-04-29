@@ -147,11 +147,23 @@
   50%       { opacity: 0.5; }
 }
 
+@keyframes scorePop {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.3); }
+  100% { transform: scale(1); }
+}
+@keyframes floatUp {
+  0%   { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(-32px); }
+}
+
 /* dur-long1, decelerate — M3 screen enter */
 .animate-enter     { animation: enterScreen var(--dur-long1) var(--ease-decelerate) both; }
 .animate-pulsate   { animation: pulsate 0.55s var(--ease-standard) infinite; }
 .animate-reveal    { animation: revealLetter var(--dur-medium2) var(--ease-decelerate) both; }
 .animate-pulse-soft{ animation: pulseSoft 1.4s var(--ease-standard) infinite; }
+.animate-score-pop { animation: scorePop 0.4s var(--ease-standard) both; }
+.animate-float-up  { animation: floatUp 0.75s var(--ease-decelerate) both; }
 
 /* ── Base ──────────────────────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }

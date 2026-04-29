@@ -28,15 +28,14 @@ export default function MilestoneToast() {
 
   return (
     <div className="animate-enter" style={{
-      position: 'fixed', top: 24, left: '50%', transform: 'translateX(-50%)',
-      zIndex: 60, pointerEvents: 'none',
-      display: 'flex', alignItems: 'center', gap: 12,
-      padding: '14px 20px',
+      pointerEvents: 'none',
+      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12,
+      padding: '12px 20px',
       background: isRecord ? 'var(--warning-container)' : 'var(--primary-container)',
       color:      isRecord ? 'var(--warning)'           : 'var(--on-primary-container)',
       borderRadius: 'var(--shape-full)',
-      boxShadow: 'var(--shadow-3)',
-      maxWidth: 'calc(100% - 32px)',
+      boxShadow: 'var(--shadow-2)',
+      width: '100%',
     }}>
       <Icon size={20} />
       <div>

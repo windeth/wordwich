@@ -172,13 +172,13 @@ export const useGameStore = create((set, get) => ({
     if (result.valid && usedWords.includes(w)) {
       if (gameMode === 'beatTheClock' || multiplayerType === null) {
         set(s => ({ failedAttempts: s.failedAttempts + 1 }))
-        return { valid: false, reason: 'Already used this game.' }
+        return { valid: false, reason: 'This word has already been used.' }
       }
       // Multiplayer: treat as a failed attempt and advance the player.
       const updated = players.map((p, i) => i === currentPlayerIndex ? { ...p, streak: 0 } : p)
       set({ players: updated })
       get().advancePlayer()
-      return { valid: false, reason: 'Already used this game.' }
+      return { valid: false, reason: 'This word has already been used.' }
     }
 
     // ── BTC: pure survival ───────────────────────────────────────────────────

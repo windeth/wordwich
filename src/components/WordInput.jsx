@@ -24,17 +24,11 @@ export default function WordInput() {
     if (!value.trim() || isDisabled) return
     const result = submitWord(value)
     if (result.valid) {
-      const msg = result.beatMaster
-        ? `+${result.score} pts · 🏆 Beat the Master (+${result.bonus} bonus)`
-        : result.score !== undefined ? `+${result.score} pts` : 'Nice!'
-      setFeedback({ ok: true, msg })
       setValue('')
-      setTimeout(() => setFeedback(null), 2500)
     } else {
       const start = prompt?.startLetter?.toUpperCase() ?? '?'
       const end   = prompt?.endLetter?.toUpperCase() ?? '?'
-      // Show the specific reason for reuse + length errors; otherwise a consolidated reminder.
-      const isSpecific = result.reason === 'Already used this game.'
+      const isSpecific = result.reason === 'This word has already been used.'
         || result.reason?.startsWith('Word must be at least')
       setFeedback({
         ok: false,

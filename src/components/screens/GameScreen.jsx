@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Lightbulb, Loader2, Flag, SkipForward } from 'lucide-react'
 import { useTimer } from '../../hooks/useTimer'
 import { useGameStore } from '../../store/useGameStore'
@@ -36,6 +36,25 @@ export default function GameScreen() {
   const [insightHint, setInsightHint] = useState(null)
   const [insightLoading, setInsightLoading] = useState(false)
 
+  const [scoreAnimKey, setScoreAnimKey] = useState(0)
+  const [scoreDelta, setScoreDelta]     = useState(null)
+  const prevScoreRef = useRef(null)
+  const displayScore = isBTC ? wordsCompleted : (currentPlayer?.score ?? 0)
+
+  useEffect(() => {
+    if (prevScoreRef.current === null) {
+      prevScoreRef.current = displayScore
+      return
+    }
+    const delta = displayScore - prevScoreRef.current
+    prevScoreRef.current = displayScore
+    if (delta <= 0) return
+    setScoreAnimKey(k => k + 1)
+    setScoreDelta(`+${delta}`)
+    const t = setTimeout(() => setScoreDelta(null), 800)
+    return () => clearTimeout(t)
+  }, [displayScore])
+
   useEffect(() => {
     if (!insightUsed || !masterWord) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -62,7 +81,8 @@ export default function GameScreen() {
   return (
     <div className="animate-enter" style={{
       display: 'flex', flexDirection: 'column',
-      minHeight: '100svh', padding: '24px 24px 40px',
+      height: '100dvh', overflowY: 'auto',
+      padding: '24px 24px 40px',
       gap: '20px', maxWidth: '480px', margin: '0 auto', width: '100%',
     }}>
 
@@ -79,15 +99,23 @@ export default function GameScreen() {
           }}>
             BEAT THE CLOCK
           </h1>
-          <div style={{ display: 'inline-flex', alignItems: 'baseline', gap: '10px' }}>
+          <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'baseline', gap: '10px' }}>
             <span className="label" style={{ fontSize: '0.875rem' }}>Score:</span>
-            <span style={{
-              fontSize: '2.25rem', fontWeight: 900,
-              letterSpacing: '-0.03em', lineHeight: 1,
-              color: 'var(--primary)',
-            }}>
+            <span
+              key={scoreAnimKey}
+              className={scoreAnimKey > 0 ? 'animate-score-pop' : ''}
+              style={{ fontSize: '2.25rem', fontWeight: 900, letterSpacing: '-0.03em', lineHeight: 1, color: 'var(--primary)' }}>
               {wordsCompleted}
             </span>
+            {scoreDelta && (
+              <span className="animate-float-up" style={{
+                position: 'absolute', top: '-4px', right: '-28px',
+                fontSize: '0.875rem', fontWeight: 800,
+                color: 'var(--success)', pointerEvents: 'none',
+              }}>
+                {scoreDelta}
+              </span>
+            )}
           </div>
         </div>
       ) : (
@@ -106,6 +134,9 @@ export default function GameScreen() {
           )}
         </div>
       )}
+
+      {/* ── Milestone toast (inline, below score, above letters) */}
+      <MilestoneToast />
 
       {/* ── Prompt card */}
       <div className="card-elevated" style={{ padding: '40px 32px', textAlign: 'center' }}>
@@ -217,10 +248,23 @@ export default function GameScreen() {
           </div>
           <div style={{ textAlign: 'right' }}>
             <span className="label" style={{ display: 'block', marginBottom: '4px' }}>Score</span>
-            <span style={{ fontSize: '2rem', fontWeight: 900, letterSpacing: '-0.03em',
-              color: 'var(--primary)', lineHeight: 1 }}>
-              {currentPlayer?.score}
-            </span>
+            <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center' }}>
+              <span
+                key={scoreAnimKey}
+                className={scoreAnimKey > 0 ? 'animate-score-pop' : ''}
+                style={{ fontSize: '2rem', fontWeight: 900, letterSpacing: '-0.03em', color: 'var(--primary)', lineHeight: 1 }}>
+                {currentPlayer?.score}
+              </span>
+              {scoreDelta && (
+                <span className="animate-float-up" style={{
+                  position: 'absolute', top: '-4px', right: '-28px',
+                  fontSize: '0.875rem', fontWeight: 800,
+                  color: 'var(--success)', pointerEvents: 'none',
+                }}>
+                  {scoreDelta}
+                </span>
+              )}
+            </div>
           </div>
         </div>
       )}
@@ -229,9 +273,23 @@ export default function GameScreen() {
       {isSoloClassic && (
         <div className="card" style={{ padding: '14px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <span className="label">Score</span>
-          <span style={{ fontSize: '1.5rem', fontWeight: 900, color: 'var(--primary)', letterSpacing: '-0.02em', lineHeight: 1 }}>
-            {currentPlayer?.score ?? 0}
-          </span>
+          <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center' }}>
+            <span
+              key={scoreAnimKey}
+              className={scoreAnimKey > 0 ? 'animate-score-pop' : ''}
+              style={{ fontSize: '1.5rem', fontWeight: 900, color: 'var(--primary)', letterSpacing: '-0.02em', lineHeight: 1 }}>
+              {currentPlayer?.score ?? 0}
+            </span>
+            {scoreDelta && (
+              <span className="animate-float-up" style={{
+                position: 'absolute', top: '-4px', right: '-28px',
+                fontSize: '0.875rem', fontWeight: 800,
+                color: 'var(--success)', pointerEvents: 'none',
+              }}>
+                {scoreDelta}
+              </span>
+            )}
+          </div>
         </div>
       )}
 
@@ -291,9 +349,6 @@ export default function GameScreen() {
           Surrender
         </button>
       )}
-
-      {/* ── Milestone toast (top of viewport) */}
-      <MilestoneToast />
 
       {/* ── Surrender modal */}
       {showSurrender && (

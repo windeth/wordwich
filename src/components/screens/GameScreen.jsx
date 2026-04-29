@@ -105,32 +105,33 @@ export default function GameScreen() {
           padding: '24px 24px 0',
           display: 'flex', flexDirection: 'column', gap: '12px',
         }}>
-          {/* Header — solo style for all modes (label left, score right) */}
+          {/* Header — label left; solo modes show score on the right (multiplayer scores live in PlayerList) */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
             <span className="label" style={{ flex: '0 1 auto', minWidth: 0 }}>{headerLabel}</span>
             <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexShrink: 0 }}>
-              {/* Score (top-right) */}
-              <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'baseline', gap: 6 }}>
-                <span className="label" style={{ fontSize: '0.7rem' }}>Score</span>
-                <span
-                  key={scoreAnimKey}
-                  className={scoreAnimKey > 0 ? 'animate-score-pop' : ''}
-                  style={{
-                    fontSize: '1.375rem', fontWeight: 900,
-                    color: 'var(--primary)', letterSpacing: '-0.02em', lineHeight: 1,
-                  }}>
-                  {displayScore}
-                </span>
-                {scoreDelta && (
-                  <span className="animate-float-up" style={{
-                    position: 'absolute', top: '-4px', right: '-22px',
-                    fontSize: '0.75rem', fontWeight: 800,
-                    color: 'var(--success)', pointerEvents: 'none',
-                  }}>
-                    {scoreDelta}
+              {isSolo && (
+                <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'baseline', gap: 6 }}>
+                  <span className="label" style={{ fontSize: '0.7rem' }}>Score</span>
+                  <span
+                    key={scoreAnimKey}
+                    className={scoreAnimKey > 0 ? 'animate-score-pop' : ''}
+                    style={{
+                      fontSize: '1.375rem', fontWeight: 900,
+                      color: 'var(--primary)', letterSpacing: '-0.02em', lineHeight: 1,
+                    }}>
+                    {displayScore}
                   </span>
-                )}
-              </div>
+                  {scoreDelta && (
+                    <span className="animate-float-up" style={{
+                      position: 'absolute', top: '-4px', right: '-22px',
+                      fontSize: '0.75rem', fontWeight: 800,
+                      color: 'var(--success)', pointerEvents: 'none',
+                    }}>
+                      {scoreDelta}
+                    </span>
+                  )}
+                </div>
+              )}
               {!isSolo && (
                 <button onClick={() => setShowSurrender(true)}
                   className="type-label-md"

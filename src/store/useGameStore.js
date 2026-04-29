@@ -168,16 +168,10 @@ export const useGameStore = create((set, get) => ({
     const result = validateWord(word, prompt.startLetter, prompt.endLetter)
     const w = word.trim().toLowerCase()
 
-    // Reuse guard — applies to all modes once the word would otherwise be valid.
-    if (result.valid && usedWords.includes(w)) {
-      if (gameMode === 'beatTheClock' || multiplayerType === null) {
-        set(s => ({ failedAttempts: s.failedAttempts + 1 }))
-        return { valid: false, reason: 'This word has already been used.' }
-      }
-      // Multiplayer: treat as a failed attempt and advance the player.
-      const updated = players.map((p, i) => i === currentPlayerIndex ? { ...p, streak: 0 } : p)
-      set({ players: updated })
-      get().advancePlayer()
+    // Reuse guard — single-player modes only. In multiplayer, players may
+    // independently arrive at the same word and each receives full points.
+    if (result.valid && usedWords.includes(w) && (gameMode === 'beatTheClock' || multiplayerType === null)) {
+      set(s => ({ failedAttempts: s.failedAttempts + 1 }))
       return { valid: false, reason: 'This word has already been used.' }
     }
 

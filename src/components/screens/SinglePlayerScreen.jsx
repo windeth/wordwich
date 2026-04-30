@@ -15,7 +15,10 @@ export default function SinglePlayerScreen() {
   function pickBTC() {
     // BTC has auto-progressing difficulty — no picker, jump straight in.
     setGameMode('beatTheClock')
-    setPlayers([{ id: 0, name: 'Player 1', score: 0, streak: 0, longestWord: '', roundsWon: 0 }])
+    setPlayers([{
+      id: 0, name: 'Player 1', score: 0, streak: 0, longestWord: '', roundsWon: 0,
+      insightUsed: false, bridgeUsed: false, timeWarpUsed: false,
+    }])
     startGame()
   }
 

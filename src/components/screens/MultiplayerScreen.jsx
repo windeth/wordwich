@@ -1,18 +1,23 @@
-import { Users, Wifi, WifiOff } from 'lucide-react'
+import { Brain, Timer, WifiOff } from 'lucide-react'
 import { useGameStore } from '../../store/useGameStore'
 
 export default function MultiplayerScreen() {
   const navigate           = useGameStore(s => s.navigate)
   const setMultiplayerType = useGameStore(s => s.setMultiplayerType)
+  const setGameMode        = useGameStore(s => s.setGameMode)
+  const setRoundLimit      = useGameStore(s => s.setRoundLimit)
 
-  function handleLocalPlay() {
+  function handleClassic() {
     setMultiplayerType('local')
+    setGameMode('classic')
     navigate('difficulty')
   }
 
-  function handleHostGame() {
-    setMultiplayerType('host')
-    navigate('difficulty')
+  function handleBeatTheClock() {
+    setMultiplayerType('local')
+    setGameMode('beatTheClock')
+    setRoundLimit(10)
+    navigate('playersetup')
   }
 
   return (
@@ -33,13 +38,13 @@ export default function MultiplayerScreen() {
           Multiplayer
         </h2>
         <p className="type-body-md" style={{ marginTop: 6, color: 'var(--on-surface-variant)' }}>
-          Choose how you want to play with others.
+          Pick a mode. Each player gets a unique prompt every turn.
         </p>
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-        {/* Local Play */}
-        <button onClick={handleLocalPlay}
+        {/* Classic Multiplayer */}
+        <button onClick={handleClassic}
           className="card"
           style={{
             width: '100%', padding: '20px 24px',
@@ -52,16 +57,16 @@ export default function MultiplayerScreen() {
           onMouseDown={e  => e.currentTarget.style.transform = 'scale(0.98)'}
           onMouseUp={e    => e.currentTarget.style.transform = 'scale(1.02)'}>
           <div style={{ width: 48, height: 48, borderRadius: 'var(--shape-md)', background: 'var(--primary-container)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-            <Users size={22} style={{ color: 'var(--on-primary-container)' }} />
+            <Brain size={22} style={{ color: 'var(--on-primary-container)' }} />
           </div>
           <div>
-            <p style={{ fontWeight: 800, fontSize: '1.05rem', color: 'var(--on-surface)' }}>Local Play</p>
-            <p className="type-body-md" style={{ marginTop: 2, color: 'var(--on-surface-variant)' }}>Pass-and-play on this device</p>
+            <p style={{ fontWeight: 800, fontSize: '1.05rem', color: 'var(--on-surface)' }}>Classic</p>
+            <p className="type-body-md" style={{ marginTop: 2, color: 'var(--on-surface-variant)' }}>Pass-and-play. Submit a word or skip; pick rounds &amp; difficulty.</p>
           </div>
         </button>
 
-        {/* Host Game */}
-        <button onClick={handleHostGame}
+        {/* Beat the Clock Multiplayer */}
+        <button onClick={handleBeatTheClock}
           className="card"
           style={{
             width: '100%', padding: '20px 24px',
@@ -74,21 +79,21 @@ export default function MultiplayerScreen() {
           onMouseDown={e  => e.currentTarget.style.transform = 'scale(0.98)'}
           onMouseUp={e    => e.currentTarget.style.transform = 'scale(1.02)'}>
           <div style={{ width: 48, height: 48, borderRadius: 'var(--shape-md)', background: 'var(--primary-container)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-            <Wifi size={22} style={{ color: 'var(--on-primary-container)' }} />
+            <Timer size={22} style={{ color: 'var(--on-primary-container)' }} />
           </div>
           <div>
-            <p style={{ fontWeight: 800, fontSize: '1.05rem', color: 'var(--on-surface)' }}>Host Game</p>
-            <p className="type-body-md" style={{ marginTop: 2, color: 'var(--on-surface-variant)' }}>Start a Beat the Clock session</p>
+            <p style={{ fontWeight: 800, fontSize: '1.05rem', color: 'var(--on-surface)' }}>Beat the Clock</p>
+            <p className="type-body-md" style={{ marginTop: 2, color: 'var(--on-surface-variant)' }}>10 prompts per player. 60s each — miss it, score 0 and pass.</p>
           </div>
         </button>
 
-        {/* Join Game — coming soon */}
+        {/* Multi-device — coming soon */}
         <div className="card" style={{ padding: '20px 24px', display: 'flex', alignItems: 'center', gap: 20, opacity: 0.45 }}>
           <div style={{ width: 48, height: 48, borderRadius: 'var(--shape-md)', background: 'var(--surface-container-high)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
             <WifiOff size={22} style={{ color: 'var(--on-surface-variant)' }} />
           </div>
           <div>
-            <p style={{ fontWeight: 800, fontSize: '1.05rem', color: 'var(--on-surface)' }}>Join Game</p>
+            <p style={{ fontWeight: 800, fontSize: '1.05rem', color: 'var(--on-surface)' }}>Multi-device</p>
             <p className="type-body-md" style={{ marginTop: 2, color: 'var(--on-surface-variant)' }}>Coming soon</p>
           </div>
         </div>

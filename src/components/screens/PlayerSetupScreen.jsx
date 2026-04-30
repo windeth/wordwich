@@ -19,7 +19,10 @@ export default function PlayerSetupScreen() {
 
   function handleStart() {
     if (!canStart) return
-    setPlayers(validNames.map((name, i) => ({ id: i, name, score: 0, streak: 0, longestWord: '', roundsWon: 0 })))
+    setPlayers(validNames.map((name, i) => ({
+      id: i, name, score: 0, streak: 0, longestWord: '', roundsWon: 0,
+      insightUsed: false, bridgeUsed: false, timeWarpUsed: false,
+    })))
     startGame()
   }
 

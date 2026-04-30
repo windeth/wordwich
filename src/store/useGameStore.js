@@ -70,10 +70,11 @@ export const useGameStore = create((set, get) => ({
 
   // ── Game start ─────────────────────────────────────────────────────────────
   startGame: () => {
-    const { gameMode, roundLimit } = get()
+    const { gameMode, roundLimit, multiplayerType } = get()
+    const isSoloBTC = gameMode === 'beatTheClock' && multiplayerType === null
 
-    if (gameMode === 'beatTheClock') {
-      // BTC: auto-progressing difficulty starting at very easy. No picker.
+    if (isSoloBTC) {
+      // Solo BTC: time-bank survival, auto-progressing difficulty, no master word.
       const startDifficulty = difficultyForProgress(0)
       const prompt = generatePrompt(startDifficulty)
       set({
@@ -92,11 +93,14 @@ export const useGameStore = create((set, get) => ({
       return
     }
 
-    // Solo Classic with unlimited rounds also auto-progresses difficulty.
-    const isSoloUnlimited = get().multiplayerType === null && !roundLimit
-    const startDifficulty = isSoloUnlimited ? difficultyForProgress(0) : get().difficulty
+    // Solo Classic unlimited rounds + BTC mp both auto-progress difficulty.
+    const isMpBTC = gameMode === 'beatTheClock' && multiplayerType !== null
+    const isSoloUnlimited = multiplayerType === null && !roundLimit
+    const startDifficulty = (isMpBTC || isSoloUnlimited) ? difficultyForProgress(0) : get().difficulty
 
-    // Classic (solo or multiplayer)
+    // Classic-style start: works for Solo Classic, Classic mp, and BTC mp.
+    // BTC mp uses the same per-prompt 60s timer as Classic mp; only the
+    // round limit (10) and Skip-button visibility differ in UI.
     const prompt = generatePrompt(startDifficulty)
     const masterWord = findMasterWord(prompt.startLetter, prompt.endLetter, startDifficulty)
     const bridgeData = findBridgeWord(prompt.startLetter, prompt.endLetter)
@@ -117,7 +121,9 @@ export const useGameStore = create((set, get) => ({
   tickTimer: () => {
     const { gameMode, timeWarpActive, multiplayerType } = get()
     if (timeWarpActive) return
-    if (gameMode === 'beatTheClock') {
+
+    // Solo BTC: time-bank survival — empty bank ends the run.
+    if (gameMode === 'beatTheClock' && multiplayerType === null) {
       const t = get().timeRemaining
       if (t <= 0) { get().endBTCRun(); return }
       set(s => ({ timeRemaining: s.timeRemaining - 1 }))
@@ -147,10 +153,27 @@ export const useGameStore = create((set, get) => ({
       }
       return
     }
-    // Classic: solo has no timer; only multiplayer ticks per turn.
+
+    // Solo Classic has no timer.
     if (multiplayerType === null) return
+
+    // Classic mp + BTC mp: per-prompt 60s timer. Expiry = 0 pts and pass.
     const t = get().timeRemaining
-    if (t <= 0) { get().advancePlayer(); return }
+    if (t <= 0) {
+      const { players, currentPlayerIndex, roundHistory } = get()
+      const player = players[currentPlayerIndex]
+      const updated = players.map((p, i) =>
+        i === currentPlayerIndex ? { ...p, streak: 0 } : p
+      )
+      const entry = {
+        playerId: player.id, playerName: player.name,
+        word: '—', score: 0, wasValid: false,
+        beatMaster: false, bonus: 0, passed: true, expired: true,
+      }
+      set({ players: updated, roundHistory: [...roundHistory, entry] })
+      get().advancePlayer()
+      return
+    }
     set(s => ({ timeRemaining: s.timeRemaining - 1 }))
   },
 
@@ -167,16 +190,33 @@ export const useGameStore = create((set, get) => ({
     const { prompt, bridgeUsed, players, currentPlayerIndex, roundHistory, gameMode, multiplayerType, masterWord, usedWords, runLongestLen, btcPreviousBest } = get()
     const result = validateWord(word, prompt.startLetter, prompt.endLetter)
     const w = word.trim().toLowerCase()
+    const isSoloBTC = gameMode === 'beatTheClock' && multiplayerType === null
 
-    // Reuse guard — single-player modes only. In multiplayer, players may
-    // independently arrive at the same word and each receives full points.
-    if (result.valid && usedWords.includes(w) && (gameMode === 'beatTheClock' || multiplayerType === null)) {
-      set(s => ({ failedAttempts: s.failedAttempts + 1 }))
+    // Reuse guard — global, all modes. Once a word is in usedWords, no one can
+    // play it again (including the same player on a later turn).
+    if (result.valid && usedWords.includes(w)) {
+      if (multiplayerType === null) {
+        // Solo: stay on the prompt, fail count.
+        set(s => ({ failedAttempts: s.failedAttempts + 1 }))
+        return { valid: false, reason: 'This word has already been used.' }
+      }
+      // Multiplayer: log a 0-pt entry, reset streak, advance.
+      const updated = players.map((p, i) =>
+        i === currentPlayerIndex ? { ...p, streak: 0 } : p
+      )
+      const player = players[currentPlayerIndex]
+      const entry = {
+        playerId: player.id, playerName: player.name,
+        word: w, score: 0, wasValid: false,
+        beatMaster: false, bonus: 0, passed: false, reused: true,
+      }
+      set({ players: updated, roundHistory: [...roundHistory, entry] })
+      get().advancePlayer()
       return { valid: false, reason: 'This word has already been used.' }
     }
 
-    // ── BTC: pure survival ───────────────────────────────────────────────────
-    if (gameMode === 'beatTheClock') {
+    // ── Solo BTC: pure survival (time-bank) ──────────────────────────────────
+    if (isSoloBTC) {
       if (!result.valid) {
         set(s => ({ failedAttempts: s.failedAttempts + 1 }))
         return { valid: false, reason: result.reason }
@@ -223,10 +263,10 @@ export const useGameStore = create((set, get) => ({
       return { valid: true }
     }
 
-    // ── Classic: invalid attempt — solo retries; multiplayer advances ────────
+    // ── Classic-style scoring (Solo Classic + Classic mp + BTC mp) ───────────
+    // Invalid: solo retries; multiplayer advances with 0 pts.
     if (!result.valid) {
       if (multiplayerType === null) {
-        // Solo Classic: stay on the prompt, increment fail count
         set(s => ({ failedAttempts: s.failedAttempts + 1 }))
         return { valid: false, reason: result.reason }
       }
@@ -288,47 +328,88 @@ export const useGameStore = create((set, get) => ({
 
   // ── Player/Round advancement ───────────────────────────────────────────────
   advancePlayer: () => {
-    const { players, currentPlayerIndex, currentRound, roundLimit, gameMode } = get()
+    const { players, currentPlayerIndex, currentRound, roundLimit, gameMode, multiplayerType, difficulty } = get()
+    const isMp = multiplayerType !== null
+    const isBTCmp = gameMode === 'beatTheClock' && isMp
     const nextIndex = (currentPlayerIndex + 1) % players.length
+    const isWrap = nextIndex === 0
 
-    if (nextIndex === 0) {
-      // End of round
-      const roundWinner = [...get().players].sort((a, b) => b.score - a.score)[0]
-      const updatedPlayers = get().players.map(p =>
+    // End of round: credit the round winner.
+    let nextPlayers = players
+    if (isWrap) {
+      const roundWinner = [...players].sort((a, b) => b.score - a.score)[0]
+      nextPlayers = players.map(p =>
         p.id === roundWinner.id ? { ...p, roundsWon: p.roundsWon + 1 } : p
       )
-      const isLastRound = gameMode === 'classic' && roundLimit && currentRound >= roundLimit
-      set({ players: updatedPlayers, screen: 'recap', isLastRound: !!isLastRound })
-    } else {
-      set({
-        currentPlayerIndex: nextIndex,
-        timeRemaining: CLASSIC_TURN_SECONDS,
-        bridgeUsed: false,
-        insightUsed: false,
-        failedAttempts: 0,
-      })
     }
+
+    const newRound = isWrap ? currentRound + 1 : currentRound
+    const finalRoundJustEnded = isWrap && roundLimit && currentRound >= roundLimit
+
+    // BTC mp: no recap. After the last round, jump straight to HallOfFame.
+    if (isBTCmp && finalRoundJustEnded) {
+      set({ players: nextPlayers, screen: 'halloffame' })
+      return
+    }
+
+    // Classic mp + Solo Classic at end-of-round: show the recap screen.
+    // (BTC mp skips the recap and continues directly into the next round.)
+    if (isWrap && !isBTCmp) {
+      set({ players: nextPlayers, screen: 'recap', isLastRound: !!finalRoundJustEnded })
+      return
+    }
+
+    // Generate a fresh prompt for the next active player. BTC mp progresses
+    // difficulty by round; Classic mp keeps the user-selected difficulty.
+    const nextDifficulty = isBTCmp ? difficultyForProgress(newRound - 1) : difficulty
+    const newPrompt = generatePrompt(nextDifficulty)
+    const newMasterWord = findMasterWord(newPrompt.startLetter, newPrompt.endLetter, nextDifficulty)
+    const newBridgeData = findBridgeWord(newPrompt.startLetter, newPrompt.endLetter)
+    const nextPlayer = nextPlayers[nextIndex]
+
+    set({
+      players: nextPlayers,
+      currentPlayerIndex: nextIndex,
+      currentRound: newRound,
+      difficulty: nextDifficulty,
+      prompt: newPrompt,
+      masterWord: newMasterWord,
+      bridgeData: newBridgeData,
+      timeRemaining: CLASSIC_TURN_SECONDS,
+      // Sync power-up UI flags from the next active player's persisted state.
+      insightUsed: !!nextPlayer.insightUsed,
+      bridgeUsed: !!nextPlayer.bridgeUsed,
+      timeWarpActive: false,
+      timeWarpRemaining: 0,
+      failedAttempts: 0,
+      // Clear roundHistory when starting a fresh round so the recap reflects only that round.
+      roundHistory: isWrap ? [] : get().roundHistory,
+    })
   },
 
   // ── Next round ─────────────────────────────────────────────────────────────
   nextRound: () => {
-    const { difficulty, multiplayerType, roundLimit, currentRound } = get()
+    const { difficulty, multiplayerType, roundLimit, currentRound, players } = get()
+    const isMp = multiplayerType !== null
     // Unlimited Solo Classic auto-progresses difficulty every PROGRESS_STEP rounds.
-    const isSoloUnlimited = multiplayerType === null && !roundLimit
+    const isSoloUnlimited = !isMp && !roundLimit
     const nextDifficulty = isSoloUnlimited
       ? difficultyForProgress(Math.floor(currentRound / PROGRESS_STEP))
       : difficulty
     const prompt = generatePrompt(nextDifficulty)
     const masterWord = findMasterWord(prompt.startLetter, prompt.endLetter, nextDifficulty)
     const bridgeData = findBridgeWord(prompt.startLetter, prompt.endLetter)
+    // For mp, power-ups are one-time-per-game per player — sync the UI flags
+    // from player[0] (whose turn is starting) instead of resetting to false.
+    const player0 = players[0]
     set(s => ({
       screen: 'game',
       difficulty: nextDifficulty,
       prompt,
       masterWord,
       bridgeData,
-      insightUsed: false,
-      bridgeUsed: false,
+      insightUsed: isMp ? !!player0?.insightUsed : false,
+      bridgeUsed: isMp ? !!player0?.bridgeUsed : false,
       timeWarpActive: false,
       timeWarpRemaining: 0,
       timeRemaining: CLASSIC_TURN_SECONDS,
@@ -370,15 +451,23 @@ export const useGameStore = create((set, get) => ({
 
   // ── Power-ups ─────────────────────────────────────────────────────────────
   usePowerUp: (type) => {
-    const { players, currentPlayerIndex } = get()
+    const { players, currentPlayerIndex, multiplayerType } = get()
     const player = players[currentPlayerIndex]
     const cost = POWERUP_COSTS[type]
 
     if (player.score < cost) return { ok: false, reason: 'Not enough points.' }
 
-    const updated = players.map((p, i) =>
-      i === currentPlayerIndex ? { ...p, score: p.score - cost } : p
-    )
+    const isMp = multiplayerType !== null
+    const updated = players.map((p, i) => {
+      if (i !== currentPlayerIndex) return p
+      let perPlayerFlag = {}
+      if (isMp) {
+        if (type === 'insight')   perPlayerFlag = { insightUsed: true }
+        else if (type === 'bridge')   perPlayerFlag = { bridgeUsed: true }
+        else if (type === 'timeWarp') perPlayerFlag = { timeWarpUsed: true }
+      }
+      return { ...p, score: p.score - cost, ...perPlayerFlag }
+    })
 
     if (type === 'insight') set({ players: updated, insightUsed: true })
     else if (type === 'bridge') set({ players: updated, bridgeUsed: true })
@@ -391,8 +480,8 @@ export const useGameStore = create((set, get) => ({
   surrender: () => {
     const { multiplayerType, gameMode } = get()
     if (multiplayerType !== null) {
-      // Multiplayer: existing behavior (full reset to home)
-      get().resetGame()
+      // Multiplayer: ends game for everyone, show HallOfFame with current totals.
+      set({ screen: 'halloffame' })
       return
     }
     if (gameMode === 'beatTheClock') {

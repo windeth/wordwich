@@ -20,7 +20,10 @@ export default function DifficultyScreen() {
     if (multiplayerType === null) {
       const existing = useGameStore.getState().players
       if (!existing.length) {
-        setPlayers([{ id: 0, name: 'Player 1', score: 0, streak: 0, longestWord: '', roundsWon: 0 }])
+        setPlayers([{
+          id: 0, name: 'Player 1', score: 0, streak: 0, longestWord: '', roundsWon: 0,
+          insightUsed: false, bridgeUsed: false, timeWarpUsed: false,
+        }])
       }
       startGame()
     } else {

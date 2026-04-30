@@ -25,7 +25,10 @@ export default function SetupScreen() {
   function handleStart() {
     const valid = names.map(n => n.trim()).filter(Boolean)
     if (!valid.length) return
-    setPlayers(valid.map((name, i) => ({ id: i, name, score: 0, streak: 0, longestWord: '', roundsWon: 0 })))
+    setPlayers(valid.map((name, i) => ({
+      id: i, name, score: 0, streak: 0, longestWord: '', roundsWon: 0,
+      insightUsed: false, bridgeUsed: false, timeWarpUsed: false,
+    })))
     startGame()
   }
 

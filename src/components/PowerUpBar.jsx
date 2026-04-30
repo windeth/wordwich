@@ -19,8 +19,12 @@ export default function PowerUpBar() {
   const timeWarpActive     = useGameStore(s => s.timeWarpActive)
   const multiplayerType    = useGameStore(s => s.multiplayerType)
   const gameMode           = useGameStore(s => s.gameMode)
-  const currentScore       = players[currentPlayerIndex]?.score ?? 0
-  const isUsed             = { insight: insightUsed, bridge: bridgeUsed, timeWarp: timeWarpActive }
+  const currentPlayer      = players[currentPlayerIndex]
+  const currentScore       = currentPlayer?.score ?? 0
+  // Time Warp in mp is one-time per player — once used, stay disabled even after
+  // the freeze window ends. Solo modes keep the legacy "active = disabled" model.
+  const timeWarpDisabled   = timeWarpActive || (multiplayerType !== null && !!currentPlayer?.timeWarpUsed)
+  const isUsed             = { insight: insightUsed, bridge: bridgeUsed, timeWarp: timeWarpDisabled }
 
   // Solo Classic has no timer — Time Warp would have nothing to freeze.
   const isSoloClassic = multiplayerType === null && gameMode === 'classic'

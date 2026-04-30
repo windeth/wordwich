@@ -74,8 +74,11 @@ export default function GameScreen() {
     return () => { cancelled = true }
   }, [insightUsed, masterWord])
 
+  const isClassicMp = !isSolo && !isBTC
+  const isBTCmp     = !isSolo && isBTC
+
   const headerLabel = isBTC
-    ? 'Beat the Clock'
+    ? (isSolo ? 'Beat the Clock' : `Round ${currentRound} of ${roundLimit ?? 10} · Beat the Clock`)
     : roundLimit
       ? `Round ${currentRound} of ${roundLimit} · Classic`
       : `Round ${currentRound} · Classic`
@@ -309,7 +312,22 @@ export default function GameScreen() {
             </div>
           )}
 
-          {isBTC && (
+          {isClassicMp && (
+            <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
+              <button onClick={passRound}
+                className="btn-outlined"
+                style={{
+                  width: '50%', borderRadius: 'var(--shape-md)', height: 44,
+                  display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                  fontSize: '0.9rem', fontWeight: 700, color: 'var(--on-surface-variant)',
+                }}>
+                <SkipForward size={14} />
+                Skip
+              </button>
+            </div>
+          )}
+
+          {isBTC && isSolo && (
             <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
               <button onClick={() => setShowSurrender(true)}
                 className="btn-outlined"

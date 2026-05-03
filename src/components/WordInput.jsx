@@ -58,7 +58,10 @@ export default function WordInput() {
         <input
           type="text"
           value={value}
-          onChange={e => setValue(e.target.value.toLowerCase())}
+          onChange={e => {
+            setValue(e.target.value.toLowerCase())
+            if (feedback) setFeedback(null)
+          }}
           disabled={isDisabled}
           placeholder="Type your word…"
           autoComplete="off" autoCorrect="off" autoCapitalize="none" spellCheck="false"

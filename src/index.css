@@ -27,9 +27,9 @@
 
   /* Text roles (Airbnb: warm, never cold) */
   --on-surface:         #1C1917;   /* stone-900 */
-  --on-surface-variant: #6B6560;   /* stone-500 */
-  --outline:            #C9C5BE;   /* stone-300 */
-  --outline-variant:    #E7E4DD;   /* stone-200 */
+  --on-surface-variant: #4A4642;   /* darker — passes WCAG AA on cream surfaces */
+  --outline:            #A39C94;   /* visible borders */
+  --outline-variant:    #C9C5BE;   /* visible card borders */
 
   /* Semantic */
   --success:            #188038;

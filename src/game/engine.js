@@ -1,5 +1,6 @@
 import wordsRaw from '../data/words.json'
 import qualifiedRaw from '../data/qualified-master-words.json'
+import masterDefs from '../data/master-word-definitions.json'
 
 // ── Scientific/technical suffix filter ────────────────────────────────────
 const SCIENTIFIC_SUFFIXES = [
@@ -20,17 +21,6 @@ function isScientific(word) {
     if (word.startsWith(p) && word.length > p.length + 2) return true
   }
   return false
-}
-
-// Easy mode: words ≤8 letters that read as everyday English
-// Proxy: no uncommon double-consonant clusters, no very long Latin-root words
-const UNCOMMON_CLUSTERS = ['kn', 'gn', 'pn', 'pt', 'ph', 'rh', 'wr']
-function isEasyFamiliar(word) {
-  if (word.length > 8) return false
-  for (const c of UNCOMMON_CLUSTERS) {
-    if (word.includes(c)) return false
-  }
-  return true
 }
 
 // Validated word set (all valid submissions)
@@ -64,17 +54,17 @@ const EINSTEIN_LETTERS = new Set(['j', 'q', 'v', 'x', 'z'])
 const qualifiedMasterWords = new Set(qualifiedRaw)
 const filterByQualified = qualifiedMasterWords.size > 0
 
-const masterPoolEasy = []
-const masterPoolMedium = []
-const masterPoolHard = []
+const masterPoolEasy = []   // 9–12 letters
+const masterPoolMedium = [] // 10–13 letters
+const masterPoolHard = []   // 12–15 letters
 
 for (const word of wordsRaw) {
-  if (word.length < 4 || word.length > 15) continue
+  if (word.length < 9 || word.length > 15) continue
   if (isScientific(word)) continue
   if (filterByQualified && !qualifiedMasterWords.has(word)) continue
-  if (isEasyFamiliar(word)) masterPoolEasy.push(word)
-  if (word.length <= 12) masterPoolMedium.push(word)
-  masterPoolHard.push(word) // all non-scientific words up to 15 letters
+  if (word.length <= 12) masterPoolEasy.push(word)
+  if (word.length >= 10 && word.length <= 13) masterPoolMedium.push(word)
+  if (word.length >= 12) masterPoolHard.push(word)
 }
 
 // ── Prompt difficulty pools (by letter-pair word count) ───────────────────
@@ -166,21 +156,15 @@ export function findMasterWord(startLetter, endLetter, difficulty = 'medium') {
     : (tier === 'difficult' || tier === 'veryDifficult' || tier === 'einstein') ? masterPoolHard
     : masterPoolMedium
 
-  let best = null
-  for (const word of pool) {
-    if (word[0] === s && word[word.length - 1] === e) {
-      if (!best || word.length > best.length) best = word
-    }
+  const pickFrom = (p) => {
+    const matches = p.filter(w => w[0] === s && w[w.length - 1] === e)
+    if (!matches.length) return null
+    matches.sort((a, b) => b.length - a.length)
+    const top = matches.slice(0, 3)
+    return top[Math.floor(Math.random() * top.length)]
   }
-  // Fallback: if no word found in the difficulty pool, search all non-scientific words
-  if (!best) {
-    for (const word of masterPoolMedium) {
-      if (word[0] === s && word[word.length - 1] === e) {
-        if (!best || word.length > best.length) best = word
-      }
-    }
-  }
-  return best
+
+  return pickFrom(pool) ?? pickFrom(masterPoolMedium)
 }
 
 export function findBridgeWord(startLetter, endLetter) {
@@ -198,19 +182,6 @@ export function findBridgeWord(startLetter, endLetter) {
   return { word: w, letters: [w[3], w[4]] }
 }
 
-export async function fetchDefinition(word) {
-  const cacheKey = `wordwich_def_${word}`
-  const cached = localStorage.getItem(cacheKey)
-  if (cached !== null) return cached || null
-
-  try {
-    const res = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${word}`)
-    if (!res.ok) { localStorage.setItem(cacheKey, ''); return null }
-    const data = await res.json()
-    const def = data[0]?.meanings[0]?.definitions[0]?.definition ?? ''
-    localStorage.setItem(cacheKey, def)
-    return def || null
-  } catch {
-    return null
-  }
+export function fetchDefinition(word) {
+  return masterDefs[word?.toLowerCase()] ?? null
 }

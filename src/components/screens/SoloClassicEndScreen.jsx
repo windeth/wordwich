@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { BookOpen, Loader2 } from 'lucide-react'
+import { BookOpen } from 'lucide-react'
 import { useGameStore } from '../../store/useGameStore'
 import { fetchDefinition } from '../../game/engine'
 
@@ -16,14 +16,12 @@ export default function SoloClassicEndScreen() {
   const roundsPlayed = currentRound
 
   const [definition, setDefinition] = useState(null)
-  const [defLoading, setDefLoading] = useState(false)
   const [defShown, setDefShown]     = useState(false)
 
-  async function showDef() {
+  function showDef() {
     if (!masterWord) return
-    setDefShown(true); setDefLoading(true)
-    const def = await fetchDefinition(masterWord)
-    setDefinition(def); setDefLoading(false)
+    setDefShown(true)
+    setDefinition(fetchDefinition(masterWord))
   }
 
   return (
@@ -90,12 +88,7 @@ export default function SoloClassicEndScreen() {
             </button>
           ) : (
             <div className="card-inset animate-enter" style={{ padding: 16, textAlign: 'left' }}>
-              {defLoading ? (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <Loader2 size={14} className="animate-pulse-soft" style={{ color: 'var(--primary)' }} />
-                  <span className="type-body-md" style={{ color: 'var(--on-surface-variant)' }}>Looking it up…</span>
-                </div>
-              ) : definition ? (
+              {definition ? (
                 <p className="type-body-md" style={{ color: 'var(--on-surface-variant)', fontStyle: 'italic', lineHeight: 1.6 }}>
                   {definition}
                 </p>

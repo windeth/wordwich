@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { Lightbulb, Loader2, Flag, SkipForward } from 'lucide-react'
+import { Lightbulb, Flag, SkipForward } from 'lucide-react'
 import { useTimer } from '../../hooks/useTimer'
 import { useVisualViewport } from '../../hooks/useVisualViewport'
 import { useGameStore } from '../../store/useGameStore'
@@ -13,6 +13,7 @@ import MilestoneToast from '../MilestoneToast'
 export default function GameScreen() {
   useTimer()
   const { height: vpHeight, offsetTop: vpOffsetTop } = useVisualViewport()
+  const isCompact = vpHeight < 620
   const [showSurrender, setShowSurrender] = useState(false)
 
   const players            = useGameStore(s => s.players)
@@ -36,7 +37,6 @@ export default function GameScreen() {
   const isSoloClassic = isSolo && !isBTC
 
   const [insightHint, setInsightHint] = useState(null)
-  const [insightLoading, setInsightLoading] = useState(false)
 
   const [scoreAnimKey, setScoreAnimKey] = useState(0)
   const [scoreDelta, setScoreDelta]     = useState(null)
@@ -58,20 +58,8 @@ export default function GameScreen() {
   }, [displayScore])
 
   useEffect(() => {
-    if (!insightUsed || !masterWord) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setInsightHint(null)
-      setInsightLoading(false)
-      return
-    }
-    let cancelled = false
-    setInsightLoading(true)
-    fetchDefinition(masterWord).then(def => {
-      if (cancelled) return
-      setInsightLoading(false)
-      setInsightHint(def)
-    })
-    return () => { cancelled = true }
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setInsightHint(insightUsed && masterWord ? fetchDefinition(masterWord) : null)
   }, [insightUsed, masterWord])
 
   const isClassicMp = !isSolo && !isBTC
@@ -105,8 +93,8 @@ export default function GameScreen() {
         {/* ── TOP: header + letters — always visible */}
         <div style={{
           flexShrink: 0,
-          padding: '24px 24px 0',
-          display: 'flex', flexDirection: 'column', gap: '12px',
+          padding: isCompact ? '8px 24px 0' : '24px 24px 0',
+          display: 'flex', flexDirection: 'column', gap: isCompact ? '8px' : '12px',
         }}>
           {/* Header — label left; solo modes show score on the right (multiplayer scores live in PlayerList) */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
@@ -156,25 +144,32 @@ export default function GameScreen() {
             </div>
           )}
 
-          {/* Milestone toast */}
-          <MilestoneToast />
+          {/* Milestone toast — suppressed in compact to keep input visible */}
+          {!isCompact && <MilestoneToast />}
 
           {/* Prompt card */}
-          <div className="card-elevated" style={{ padding: '24px 32px', textAlign: 'center' }}>
-            <span className="label" style={{ display: 'block', marginBottom: '16px' }}>Your word should</span>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '24px' }}>
+          <div className="card-elevated" style={{
+            padding: isCompact ? '12px 20px' : '24px 32px',
+            textAlign: 'center',
+          }}>
+            {!isCompact && (
+              <span className="label" style={{ display: 'block', marginBottom: '16px' }}>Your word should</span>
+            )}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: isCompact ? '16px' : '24px' }}>
               {[
                 { letter: prompt?.startLetter, role: 'start with' },
                 { letter: prompt?.endLetter,   role: 'end with'   },
               ].map(({ letter, role }) => (
-                <div key={role} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+                <div key={role} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: isCompact ? '4px' : '8px' }}>
                   <div style={{
-                    width: '80px', height: '80px',
+                    width: isCompact ? '56px' : '80px',
+                    height: isCompact ? '56px' : '80px',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     background: 'var(--primary-container)',
                     color: 'var(--on-primary-container)',
                     borderRadius: 'var(--shape-lg)',
-                    fontSize: '3rem', fontWeight: 900,
+                    fontSize: isCompact ? '2rem' : '3rem',
+                    fontWeight: 900,
                     textTransform: 'uppercase', lineHeight: 1,
                     letterSpacing: '-0.02em',
                   }}>
@@ -232,12 +227,7 @@ export default function GameScreen() {
                   Hint — Master Word definition
                 </span>
               </div>
-              {insightLoading ? (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <Loader2 size={14} className="animate-pulse-soft" style={{ color: 'var(--on-primary-container)' }} />
-                  <span className="type-body-md" style={{ color: 'var(--on-primary-container)' }}>Looking up hint…</span>
-                </div>
-              ) : insightHint ? (
+              {insightHint ? (
                 <p className="type-body-md" style={{
                   color: 'var(--on-primary-container)', fontStyle: 'italic', lineHeight: 1.5,
                 }}>
@@ -251,8 +241,8 @@ export default function GameScreen() {
             </div>
           )}
 
-          {/* Active player card (multiplayer only) */}
-          {!isSolo && (
+          {/* Active player card (multiplayer only) — hidden in compact, PlayerList already shows current */}
+          {!isSolo && !isCompact && (
             <div className="card" style={{ padding: '16px 24px' }}>
               <span className="label" style={{ display: 'block', marginBottom: '6px' }}>Now Playing</span>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -279,8 +269,8 @@ export default function GameScreen() {
         {/* ── BOTTOM: input + actions — always visible above keyboard */}
         <div style={{
           flexShrink: 0,
-          padding: '8px 24px 24px',
-          display: 'flex', flexDirection: 'column', gap: '10px',
+          padding: isCompact ? '6px 24px 8px' : '8px 24px 24px',
+          display: 'flex', flexDirection: 'column', gap: isCompact ? '8px' : '10px',
         }}>
           {/* Compact power-ups — pinned above input for one-tap access */}
           {!isBTC && <PowerUpBar />}

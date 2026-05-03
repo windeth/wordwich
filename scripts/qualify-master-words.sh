@@ -21,6 +21,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 WORDS_JSON="$ROOT_DIR/src/data/words.json"
+WEBSTER_JSON="$SCRIPT_DIR/webster-1913-words.json"
 QUALIFIED_JSON="$ROOT_DIR/src/data/qualified-master-words.json"
 CACHE_JSON="$SCRIPT_DIR/.qualification-cache.json"
 WORDS_LIST="$(mktemp)"
@@ -31,37 +32,37 @@ trap 'rm -f "$WORDS_LIST"' EXIT
 for cmd in node curl jq; do
   command -v "$cmd" >/dev/null 2>&1 || { echo "missing required command: $cmd" >&2; exit 1; }
 done
-[ -f "$WORDS_JSON" ] || { echo "words.json not found at $WORDS_JSON" >&2; exit 1; }
+[ -f "$WORDS_JSON" ]   || { echo "words.json not found at $WORDS_JSON" >&2; exit 1; }
+[ -f "$WEBSTER_JSON" ] || { echo "webster-1913-words.json not found at $WEBSTER_JSON — run: curl -s ... | jq ... > $WEBSTER_JSON" >&2; exit 1; }
 
-echo "Computing master-word universe from words.json…"
+echo "Computing master-word universe (Webster-filtered, top-3 per pair/tier)…"
 node -e "
-const words = require('$WORDS_JSON');
+const words   = require('$WORDS_JSON');
+const webster = new Set(require('$WEBSTER_JSON'));
 const SCI_SUF = ['itis','osis','emia','uria','pathy','plasty','ectomy','otomy','scopy','graphy','ology','arium','torium','phyte','cyte','lysis','genesis','mycin','cillin','azole','oxine','aldehyde','ketone'];
 const SCI_PRE = ['glyco','amino','nucleo','leuko','erythro','cyto','dendro','litho','morpho','proto','xeno'];
-const UNCOMMON = ['kn','gn','pn','pt','ph','rh','wr'];
 const isSci = w => SCI_SUF.some(s => w.endsWith(s) && w.length > s.length + 3)
-                || SCI_PRE.some(p => w.startsWith(p) && w.length > p.length + 2);
-const isEasy = w => w.length <= 8 && !UNCOMMON.some(c => w.includes(c));
-// For each (startLetter, endLetter) bucket, keep the longest word per pool.
+              || SCI_PRE.some(p => w.startsWith(p) && w.length > p.length + 2);
+// Length tiers: easy 9-12, medium 10-13, hard 12-15
 const buckets = { easy: {}, medium: {}, hard: {} };
-const keep = (b, k, w) => { if (!b[k] || w.length > b[k].length) b[k] = w; };
 for (const w of words) {
-  if (w.length < 4 || w.length > 15) continue;
+  if (w.length < 9 || w.length > 15) continue;
   if (isSci(w)) continue;
-  const k = w[0] + w[w.length - 1];
-  if (isEasy(w)) keep(buckets.easy, k, w);
-  if (w.length <= 12) keep(buckets.medium, k, w);
-  keep(buckets.hard, k, w);
+  if (!webster.has(w)) continue;
+  const k = w[0] + w[w.length-1];
+  const add = (b) => { if (!b[k]) b[k] = []; b[k].push(w); };
+  if (w.length <= 12) add(buckets.easy);
+  if (w.length >= 10 && w.length <= 13) add(buckets.medium);
+  if (w.length >= 12) add(buckets.hard);
 }
+// Keep top 3 per (pair, tier) by descending length
+const TOP_N = 3;
 const seen = new Set();
 for (const diff of ['easy','medium','hard']) {
-  for (let i = 0; i < 26; i++) {
-    for (let j = 0; j < 26; j++) {
-      if (i === j) continue;
-      const k = String.fromCharCode(97 + i) + String.fromCharCode(97 + j);
-      const best = buckets[diff][k] || buckets.medium[k];
-      if (best) seen.add(best);
-    }
+  const b = buckets[diff];
+  for (const k of Object.keys(b)) {
+    b[k].sort((a, z) => z.length - a.length);
+    b[k].slice(0, TOP_N).forEach(w => seen.add(w));
   }
 }
 process.stdout.write([...seen].sort().join('\n') + '\n');
@@ -97,9 +98,22 @@ while IFS= read -r word; do
   sleep "$SLEEP_SECS"
 done < "$WORDS_LIST"
 
-# Project to bundled deliverable: sorted array of qualified words only
-jq '[to_entries[] | select(.value != "") | .key] | sort' "$CACHE_JSON" > "$QUALIFIED_JSON"
+# Project to bundled deliverable: only current candidates that have a definition
+QUALIFIED_LIST="$(mktemp)"
+jq -r 'to_entries[] | select(.value != "") | .key' "$CACHE_JSON" | sort > "$QUALIFIED_LIST"
+comm -12 <(sort "$WORDS_LIST") "$QUALIFIED_LIST" | jq -R -s 'split("\n") | map(select(length > 0)) | sort' > "$QUALIFIED_JSON"
+rm -f "$QUALIFIED_LIST"
 
 total=$(jq 'length' "$CACHE_JSON")
 qualified=$(jq 'length' "$QUALIFIED_JSON")
 echo "Done. $qualified/$total candidates qualified. Wrote $QUALIFIED_JSON."
+
+echo "Regenerating src/data/master-word-definitions.json…"
+node -e "
+const cache = require('$CACHE_JSON');
+const words = require('$QUALIFIED_JSON');
+const out = {};
+for (const w of words) { const d = cache[w]; if (d) out[w] = d; }
+require('fs').writeFileSync('$ROOT_DIR/src/data/master-word-definitions.json', JSON.stringify(out, null, 2));
+console.log('Wrote', Object.keys(out).length, 'definitions to src/data/master-word-definitions.json');
+"
